@@ -4,6 +4,7 @@
 	import * as ucans from '@ucans/ucans';
 
 	const serviceDID = writable<string | null>(null);
+	const audienceKeypair = writable<ucans.EdKeypair | null>(null);
 
 	let token = $state('');
 	let verificationResult = $state('');
@@ -21,6 +22,10 @@
 		}
 
 		serviceDID.set(keypair.did());
+
+		// Generate a keypair for the audience
+		const audienceKey = await ucans.EdKeypair.create({ exportable: true });
+		audienceKeypair.set(audienceKey);
 	});
 
 	async function generateToken() {
@@ -32,9 +37,13 @@
 			console.error('keypair is not set');
 			return;
 		}
+		if ($audienceKeypair === null) {
+			console.error('audienceKeypair is not set');
+			return;
+		}
 
 		const ucan = await ucans.build({
-			audience: $serviceDID ?? '',
+			audience: $audienceKeypair.did(),
 			issuer: keypair,
 			capabilities: [
 				{
@@ -56,9 +65,13 @@
 			console.error('token is not set');
 			return;
 		}
+        if ($audienceKeypair === null) {
+			console.error('audienceKeypair is not set');
+			return;
+		}
 
 		const result = await ucans.verify(token, {
-			audience: $serviceDID ?? '',
+			audience: $audienceKeypair.did(),
 			requiredCapabilities: [
 				{
 					capability: { can: { namespace: 'msg', segments: ['SEND'] }, with: { scheme: 'mailto', hierPart: 'test@example.com' } },
@@ -76,7 +89,7 @@
 	<h1>Welcome to SvelteKit</h1>
 	<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
 	<p>Service DID: {$serviceDID}</p>
-
+	<p>Audience DID: {$audienceKeypair?.did()}</p>
 	<button onclick={generateToken} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">generate UCAN Token</button>
 	<p><strong>UCAN Token:</strong> {token}</p>
 	<button onclick={verifyToken} disabled={!token} class="cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">verify UCAN Token</button>
