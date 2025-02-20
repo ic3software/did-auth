@@ -9,6 +9,8 @@
 	let token = $state('');
 	let verificationResult = $state('');
 	let keypair = $state<ucans.EdKeypair | null>(null);
+	let challenge = $state('');
+	let challengeResult = $state('');
 
 	onMount(async () => {
 		let storedKey = localStorage.getItem('ucan_key');
@@ -83,6 +85,42 @@
 
 		verificationResult = result.ok ? 'success' : 'failure';
 	}
+
+	async function challengeResponseVerification() {
+		if (keypair === null) {
+			console.error('keypair is not set');
+			return;
+		}
+
+		challenge = crypto.randomUUID();
+
+		const payload: ucans.UcanPayload<string> = {
+			iss: $serviceDID ?? '',
+			aud: $audienceKeypair?.did() ?? '',
+			exp: Math.floor(Date.now() / 1000) + 60 * 5,
+			nnc: challenge,
+			att: [],
+			prf: []
+		};
+
+		const signedChallenge = await ucans.signWithKeypair(
+			payload,
+			keypair
+		);
+
+		try {
+			const result = await ucans.validate(ucans.encode(signedChallenge));
+			console.log('result', result);
+			if (result.payload.nnc === challenge) {
+				challengeResult = 'validation success';
+			} else {
+				challengeResult = 'validation failed, nnc mismatch';
+			}
+		} catch (error) {
+			console.error('error', error);
+			challengeResult = 'validation failed';
+		}
+	}
 </script>
 
 <div class="px-4 py-4">
@@ -94,4 +132,7 @@
 	<p><strong>UCAN Token:</strong> {token}</p>
 	<button onclick={verifyToken} disabled={!token} class="cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">verify UCAN Token</button>
 	<p><strong>Result:</strong> {verificationResult}</p>
+	<button onclick={challengeResponseVerification} class="cursor-pointer bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Challenge-Response Verification</button>
+	<p><strong>Challenge:</strong> {challenge}</p>
+	<p><strong>Challenge Result:</strong> {challengeResult}</p>
 </div>
