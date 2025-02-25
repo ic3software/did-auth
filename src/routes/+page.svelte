@@ -17,12 +17,8 @@
 
 		if (storedKey) {
 			keypair = storedKey;
-		} else {
-			keypair = await ucans.EdKeypair.create({ exportable: true });
-			await saveToIndexedDB('ucan_key', keypair);
+			serviceDID.set(keypair.did());
 		}
-
-		serviceDID.set(keypair.did());
 
 		// Generate a keypair for the audience
 		const audienceKey = await ucans.EdKeypair.create({ exportable: true });
@@ -84,6 +80,19 @@
 			};
 			getRequest.onerror = (event) => reject((event.target as IDBRequest).error);
 		});
+	}
+
+	async function generateKeypair() {
+		let storedKey = await getFromIndexedDB('ucan_key');
+
+		if (storedKey) {
+			keypair = storedKey;
+		} else {
+			keypair = await ucans.EdKeypair.create({ exportable: true });
+			await saveToIndexedDB('ucan_key', keypair);
+		}
+
+		serviceDID.set(keypair.did());
 	}
 
 	async function generateToken() {
@@ -184,9 +193,10 @@
 	<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
 	<p>Service DID: {$serviceDID}</p>
 	<p>Audience DID: {$audienceKeypair?.did()}</p>
-	<button onclick={generateToken} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">generate UCAN Token</button>
+	<button onclick={generateKeypair} disabled={$serviceDID !== null} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Generate EdKeypair</button>
+	<button onclick={generateToken} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate UCAN Token</button>
 	<p><strong>UCAN Token:</strong> {token}</p>
-	<button onclick={verifyToken} disabled={!token} class="cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">verify UCAN Token</button>
+	<button onclick={verifyToken} disabled={!token} class="cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Verify UCAN Token</button>
 	<p><strong>Result:</strong> {verificationResult}</p>
 	<button onclick={challengeResponseVerification} class="cursor-pointer bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Challenge-Response Verification</button>
 	<p><strong>Challenge:</strong> {challenge}</p>
