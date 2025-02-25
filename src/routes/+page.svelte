@@ -13,14 +13,13 @@
 	let challengeResult = $state('');
 
 	onMount(async () => {
-		let storedKey = localStorage.getItem('ucan_key');
+		let storedKey = await getFromIndexedDB('ucan_key');
 
 		if (storedKey) {
-			keypair = ucans.EdKeypair.fromSecretKey(storedKey);
+			keypair = storedKey;
 		} else {
 			keypair = await ucans.EdKeypair.create({ exportable: true });
-			const exportedKey = await keypair.export();
-			localStorage.setItem('ucan_key', exportedKey);
+			await saveToIndexedDB('ucan_key', keypair);
 		}
 
 		serviceDID.set(keypair.did());
@@ -29,6 +28,63 @@
 		const audienceKey = await ucans.EdKeypair.create({ exportable: true });
 		audienceKeypair.set(audienceKey);
 	});
+
+	const DB_NAME = "UCAN_DB";
+	const STORE_NAME = "UCAN_KEYS";
+
+	// IndexDB
+	async function openDB(): Promise<IDBDatabase> {
+		return new Promise((resolve, reject) => {
+			const request = indexedDB.open(DB_NAME, 1);
+
+			request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+				const db = (event.target as IDBOpenDBRequest).result;
+				if (!db.objectStoreNames.contains(STORE_NAME)) {
+					db.createObjectStore(STORE_NAME);
+				}
+			};
+
+			request.onsuccess = () => {
+				resolve(request.result);
+			};
+
+			request.onerror = (event) => {
+				console.error("IndexedDB open failed", (event.target as IDBRequest).error);
+				reject(new Error("IndexedDB open failed"));
+			};
+		});
+	}
+
+	async function saveToIndexedDB(key: string, value: ucans.EdKeypair): Promise<void> {
+		const db = await openDB();
+		const exportedKey = await value.export();
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction(STORE_NAME, "readwrite");
+			const store = tx.objectStore(STORE_NAME);
+			store.put(exportedKey, key);
+			tx.oncomplete = () => resolve();
+			tx.onerror = (event) => reject((event.target as IDBRequest).error);
+		});
+	}
+
+	async function getFromIndexedDB(key: string): Promise<ucans.EdKeypair | null> {
+		const db = await openDB(); 
+		return new Promise((resolve, reject) => {
+			const tx = db.transaction(STORE_NAME, "readonly");
+			const store = tx.objectStore(STORE_NAME);
+			const getRequest = store.get(key);
+
+			getRequest.onsuccess = async () => {
+				if (getRequest.result) {
+					const importedKey = await ucans.EdKeypair.fromSecretKey(getRequest.result);
+					resolve(importedKey);
+				} else {
+					resolve(null);
+				}
+			};
+			getRequest.onerror = (event) => reject((event.target as IDBRequest).error);
+		});
+	}
 
 	async function generateToken() {
 		if ($serviceDID === null) {
