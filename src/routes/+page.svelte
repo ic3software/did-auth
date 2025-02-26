@@ -25,8 +25,8 @@
 		audienceKeypair.set(audienceKey);
 	});
 
-	const DB_NAME = "UCAN_DB";
-	const STORE_NAME = "UCAN_KEYS";
+	const DB_NAME = 'UCAN_DB';
+	const STORE_NAME = 'UCAN_KEYS';
 
 	// IndexDB
 	async function openDB(): Promise<IDBDatabase> {
@@ -45,8 +45,8 @@
 			};
 
 			request.onerror = (event) => {
-				console.error("IndexedDB open failed", (event.target as IDBRequest).error);
-				reject(new Error("IndexedDB open failed"));
+				console.error('IndexedDB open failed', (event.target as IDBRequest).error);
+				reject(new Error('IndexedDB open failed'));
 			};
 		});
 	}
@@ -55,7 +55,7 @@
 		const db = await openDB();
 		const exportedKey = await value.export();
 		return new Promise((resolve, reject) => {
-			const tx = db.transaction(STORE_NAME, "readwrite");
+			const tx = db.transaction(STORE_NAME, 'readwrite');
 			const store = tx.objectStore(STORE_NAME);
 			store.put(exportedKey, key);
 			tx.oncomplete = () => resolve();
@@ -64,9 +64,9 @@
 	}
 
 	async function getFromIndexedDB(key: string): Promise<ucans.EdKeypair | null> {
-		const db = await openDB(); 
+		const db = await openDB();
 		return new Promise((resolve, reject) => {
-			const tx = db.transaction(STORE_NAME, "readonly");
+			const tx = db.transaction(STORE_NAME, 'readonly');
 			const store = tx.objectStore(STORE_NAME);
 			const getRequest = store.get(key);
 
@@ -124,7 +124,7 @@
 	}
 
 	async function verifyToken() {
-        if ($serviceDID === null) {
+		if ($serviceDID === null) {
 			console.error('serviceDID is not set');
 			return;
 		}
@@ -132,7 +132,7 @@
 			console.error('token is not set');
 			return;
 		}
-        if ($audienceKeypair === null) {
+		if ($audienceKeypair === null) {
 			console.error('audienceKeypair is not set');
 			return;
 		}
@@ -141,7 +141,10 @@
 			audience: $audienceKeypair.did(),
 			requiredCapabilities: [
 				{
-					capability: { can: { namespace: 'msg', segments: ['SEND'] }, with: { scheme: 'mailto', hierPart: 'test@example.com' } },
+					capability: {
+						can: { namespace: 'msg', segments: ['SEND'] },
+						with: { scheme: 'mailto', hierPart: 'test@example.com' }
+					},
 					rootIssuer: $serviceDID ?? ''
 				}
 			],
@@ -168,10 +171,7 @@
 			prf: []
 		};
 
-		const signedChallenge = await ucans.signWithKeypair(
-			payload,
-			keypair
-		);
+		const signedChallenge = await ucans.signWithKeypair(payload, keypair);
 
 		try {
 			const result = await ucans.validate(ucans.encode(signedChallenge));
@@ -190,15 +190,35 @@
 
 <div class="container mx-auto px-4 py-4 break-words">
 	<h1>Welcome to SvelteKit</h1>
-	<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+	<p>
+		Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation
+	</p>
 	<p>Service DID: {$serviceDID}</p>
 	<p>Audience DID: {$audienceKeypair?.did()}</p>
-	<button onclick={generateKeypair} disabled={$serviceDID !== null} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Generate EdKeypair</button>
-	<button onclick={generateToken} class="cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Generate UCAN Token</button>
+	<button
+		onclick={generateKeypair}
+		disabled={$serviceDID !== null}
+		class="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+		>Generate EdKeypair</button
+	>
+	<button
+		onclick={generateToken}
+		class="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+		>Generate UCAN Token</button
+	>
 	<p><strong>UCAN Token:</strong> {token}</p>
-	<button onclick={verifyToken} disabled={!token} class="cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50">Verify UCAN Token</button>
+	<button
+		onclick={verifyToken}
+		disabled={!token}
+		class="cursor-pointer rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700 disabled:opacity-50"
+		>Verify UCAN Token</button
+	>
 	<p><strong>Result:</strong> {verificationResult}</p>
-	<button onclick={challengeResponseVerification} class="cursor-pointer bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Challenge-Response Verification</button>
+	<button
+		onclick={challengeResponseVerification}
+		class="cursor-pointer rounded bg-yellow-500 px-4 py-2 font-bold text-white hover:bg-yellow-700"
+		>Challenge-Response Verification</button
+	>
 	<p><strong>Challenge:</strong> {challenge}</p>
 	<p><strong>Challenge Result:</strong> {challengeResult}</p>
 </div>
