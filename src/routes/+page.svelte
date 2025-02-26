@@ -188,7 +188,7 @@
 	}
 </script>
 
-<div class="px-4 py-4">
+<div class="container mx-auto px-4 py-4 break-words">
 	<h1>Welcome to SvelteKit</h1>
 	<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
 	<p>Service DID: {$serviceDID}</p>
