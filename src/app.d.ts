@@ -8,6 +8,12 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	// Add Web Crypto API types if they're not already defined
+	interface CryptoKeyPair {
+		privateKey: CryptoKey;
+		publicKey: CryptoKey;
+	}
 }
 
 export {};
