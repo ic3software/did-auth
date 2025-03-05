@@ -1,17 +1,23 @@
 # Svelte UCAN
 
+## Install dependencies
+
+```bash
+pnpm install
+```
+
 ## Setup Drizzle and SQLite
 
 1. Generate the schema
 
     ```bash
-    npx drizzle-kit generate
+    pnpm exec drizzle-kit generate
     ```
 
 2. Push the migrations
 
     ```bash
-    npx drizzle-kit push
+    pnpm exec drizzle-kit push
     ```
 
 ## Error: Could not locate the bindings file
@@ -27,7 +33,12 @@ If you encounter the error message "Error: Could not locate the bindings file. T
 2. Run the build-release script:
 
     ```bash
-    pnpm run build-release
+    pnpm install
+    cd ../..
     ```
 
-For more information, you can refer to the issue on GitHub: [WiseLibs/better-sqlite3#146](https://github.com/WiseLibs/better-sqlite3/issues/146)
+## Run the app
+
+```bash
+pnpm dev
+```
