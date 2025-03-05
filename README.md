@@ -1,38 +1,33 @@
-# sv
+# Svelte UCAN
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Setup Drizzle and SQLite
 
-## Creating a project
+1. Generate the schema
 
-If you're seeing this, you've probably already done this step. Congrats!
+    ```bash
+    npx drizzle-kit generate
+    ```
 
-```bash
-# create a new project in the current directory
-npx sv create
+2. Push the migrations
 
-# create a new project in my-app
-npx sv create my-app
-```
+    ```bash
+    npx drizzle-kit push
+    ```
 
-## Developing
+## Error: Could not locate the bindings file
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+If you encounter the error message "Error: Could not locate the bindings file. Tried:", you can resolve it by following these steps:
 
-```bash
-npm run dev
+1. Navigate to the `better-sqlite3` directory within `node_modules`:
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+    ```bash
+    cd node_modules/better-sqlite3
+    ```
 
-## Building
+2. Run the build-release script:
 
-To create a production version of your app:
+    ```bash
+    pnpm run build-release
+    ```
 
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+For more information, you can refer to the issue on GitHub: [WiseLibs/better-sqlite3#146](https://github.com/WiseLibs/better-sqlite3/issues/146)

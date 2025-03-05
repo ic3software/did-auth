@@ -2,12 +2,6 @@
 	import { generateKeyPair, storeKeys, getKey, signData, verifySignature } from '$lib/crypto';
 	import { onMount } from 'svelte';
 
-	// Define the CryptoKeyPair interface if it's not available
-	interface CryptoKeyPair {
-		privateKey: CryptoKey;
-		publicKey: CryptoKey;
-	}
-
 	let keypair = $state<CryptoKeyPair | null>(null);
 	let message = 'Hello, secure world!';
 	let signature: Uint8Array | null = $state(null);
