@@ -1,0 +1,8 @@
+name = "murmurations_ucans"
+compatibility_date = "2025-01-14"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "local-ucans"
+database_id = "ed980ab7-ecf5-4677-929a-af871cf8cc69"
+migrations_dir = "drizzle"

@@ -1,8 +1,9 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import type { D1Database } from '@cloudflare/workers-types';
+import { drizzle } from 'drizzle-orm/d1';
 
-const sqlite = new Database('./drizzle/svelte-ucan.db');
-
-sqlite.pragma('foreign_keys = ON');
-
-export const db = drizzle(sqlite);
+export function getDB(env: { DB: D1Database }) {
+	if (!env || !env.DB) {
+		throw new Error('D1 Database binding is missing in the environment variables');
+	}
+	return drizzle(env.DB);
+}
