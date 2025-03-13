@@ -7,37 +7,6 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { verifySignature } from '$lib/server/db/cryto.server';
 import { isValidBase64 } from '$lib/base64Utils';
 
-export const GET: RequestHandler = async ({ platform = { env: { DB: {} as D1Database } }, request }) => {
-    try {
-        const db = getDB(platform.env);
-        const url = new URL(request.url);
-        const publicKey = url.searchParams.get('public_key');
-
-        if (!publicKey) {
-            return json({ error: 'Missing public_key' }, { status: 400 });
-        }
-
-        const row = await db
-            .select({
-                id: users.id,
-                name: users.name,
-            })
-            .from(users)
-            .innerJoin(publicKeys, eq(users.id, publicKeys.userId))
-            .where(eq(publicKeys.publicKey, publicKey))
-            .get();
-
-        if (row) {
-            return json({ user: row }, { status: 200 });
-        } else {
-            return json({ user: null }, { status: 200 });
-        }
-    } catch (err) {
-        console.error('Error fetching user:', err);
-        return json({ error: 'Internal Server Error' }, { status: 500 });
-    }
-};
-
 export const POST: RequestHandler = async ({ platform = { env: { DB: {} as D1Database } }, request }) => {
     try {
         const db = getDB(platform.env);
