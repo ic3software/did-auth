@@ -99,6 +99,39 @@ export async function signData(data: string): Promise<Uint8Array> {
 }
 
 /**
+ * Signs a request payload using the provided private key.
+ * 
+ * @param payload - The request payload to be signed.
+ * @param privateKey - The private key to sign the payload with.
+ * @returns A promise that resolves to the signed payload as a base64 string.
+ */
+export async function signRequest(payload: object, privateKey: CryptoKey): Promise<string> {
+	const encoder = new TextEncoder();
+	const dataBuffer = encoder.encode(JSON.stringify(payload));
+
+	const signature = await window.crypto.subtle.sign(
+		{ name: 'RSASSA-PKCS1-v1_5' },
+		privateKey,
+		dataBuffer
+	);
+
+	return btoa(String.fromCharCode(...new Uint8Array(signature)));
+}
+
+/**
+ * Exports the public key as a base64 string.
+ * 
+ * @param publicKey - The public key to be exported.
+ * @returns A promise that resolves to the exported public key as a base64 string.
+ */
+export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
+	const exportedKey = await window.crypto.subtle.exportKey('spki', publicKey);
+	const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
+	return publicKeyString;
+}
+
+
+/**
  * Verifies a signature using the stored public key.
  */
 export async function verifySignature(
