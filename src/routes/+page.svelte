@@ -38,10 +38,10 @@
 	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Web Crypto API + IndexedDB</h1>
 	<div class="mt-4">
 		<a
-			href="/login"
+			href="/register"
 			class="mt-4 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 		>
-			Login
+			Register
 		</a>
 	</div>
 
