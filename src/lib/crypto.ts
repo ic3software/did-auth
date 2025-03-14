@@ -1,22 +1,20 @@
-// src/lib/crypto.ts
-
 /**
- * Generates an RSA key pair using Web Crypto API.
+ * Generates an ECC key pair using Web Crypto API.
+ * Uses the P-256 curve for ECDSA.
  * The private key is marked as non-extractable, ensuring it cannot be exported.
  */
 export async function generateKeyPair(): Promise<CryptoKeyPair> {
 	const keyPair = await window.crypto.subtle.generateKey(
 		{
-			name: 'RSASSA-PKCS1-v1_5',
-			modulusLength: 2048,
-			publicExponent: new Uint8Array([1, 0, 1]),
-			hash: { name: 'SHA-256' }
+			name: 'ECDSA',
+			namedCurve: 'P-256'
 		},
 		false,
 		['sign', 'verify']
 	);
-
-	console.log('Key pair generated:', keyPair);
+	
+	console.log('ECC key pair generated with non-extractable private key.');
+	
 	return keyPair;
 }
 
@@ -41,19 +39,25 @@ function openDatabase(): Promise<IDBDatabase> {
 
 /**
  * Stores the generated keys securely in IndexedDB.
- * The private key is stored but remains non-extractable.
+ * The private key is stored as a CryptoKey object but remains non-extractable.
+ * This means the key can be used for operations but cannot be exported or viewed.
  */
 export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Promise<void> {
 	const db = await openDatabase();
 	const transaction = db.transaction('keys', 'readwrite');
 	const store = transaction.objectStore('keys');
 
+	// Store the public key
 	store.put(publicKey, 'publicKey');
+	
+	// Store the private key reference
+	// Even though the key is non-extractable, the CryptoKey object itself can be stored
+	// The browser ensures that the key material cannot be extracted
 	store.put(privateKey, 'privateKey');
 
 	return new Promise((resolve, reject) => {
 		transaction.oncomplete = () => {
-			console.log('Keys successfully stored in IndexedDB.');
+			console.log('ECC keys successfully stored in IndexedDB. Private key is non-extractable.');
 			resolve();
 		};
 		transaction.onerror = () => reject(transaction.error);
@@ -77,8 +81,7 @@ export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<Crypt
 }
 
 /**
- * Signs data using the stored private key.
- * The private key remains protected and cannot be extracted.
+ * Signs data using the stored private key with ECDSA.
  */
 export async function signData(data: string): Promise<Uint8Array> {
 	const privateKey = await getKey('privateKey');
@@ -90,7 +93,10 @@ export async function signData(data: string): Promise<Uint8Array> {
 	const dataBuffer = encoder.encode(data);
 
 	const signature = await window.crypto.subtle.sign(
-		{ name: 'RSASSA-PKCS1-v1_5' },
+		{
+			name: 'ECDSA',
+			hash: { name: 'SHA-256' }
+		},
 		privateKey,
 		dataBuffer
 	);
@@ -99,7 +105,7 @@ export async function signData(data: string): Promise<Uint8Array> {
 }
 
 /**
- * Signs a request payload using the provided private key.
+ * Signs a request payload using the provided private key with ECDSA.
  * 
  * @param payload - The request payload to be signed.
  * @param privateKey - The private key to sign the payload with.
@@ -110,7 +116,10 @@ export async function signRequest(payload: object, privateKey: CryptoKey): Promi
 	const dataBuffer = encoder.encode(JSON.stringify(payload));
 
 	const signature = await window.crypto.subtle.sign(
-		{ name: 'RSASSA-PKCS1-v1_5' },
+		{
+			name: 'ECDSA',
+			hash: { name: 'SHA-256' }
+		},
 		privateKey,
 		dataBuffer
 	);
@@ -125,36 +134,51 @@ export async function signRequest(payload: object, privateKey: CryptoKey): Promi
  * @returns A promise that resolves to the exported public key as a base64 string.
  */
 export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
-	const exportedKey = await window.crypto.subtle.exportKey('spki', publicKey);
-	const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
-	return publicKeyString;
+	try {
+		const exportedKey = await window.crypto.subtle.exportKey('spki', publicKey);
+		const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
+		return publicKeyString;
+	} catch (error) {
+		console.error('Error exporting public key:', error);
+		throw new Error('Failed to export public key.');
+	}
 }
 
-
 /**
- * Verifies a signature using the stored public key.
+ * Verifies a signature using ECDSA with the provided public key.
  */
 export async function verifySignature(
 	data: string,
 	signature: Uint8Array,
 	exportedPublicKeyString: string
 ): Promise<boolean> {
-	const exportedKeyBuffer = Uint8Array.from(atob(exportedPublicKeyString), (c) => c.charCodeAt(0));
-	const publicKey = await window.crypto.subtle.importKey(
-		'spki',
-		exportedKeyBuffer,
-		{ name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-		true,
-		['verify']
-	);
+	try {
+		const exportedKeyBuffer = Uint8Array.from(atob(exportedPublicKeyString), (c) => c.charCodeAt(0));
+		const publicKey = await window.crypto.subtle.importKey(
+			'spki',
+			exportedKeyBuffer,
+			{
+				name: 'ECDSA',
+				namedCurve: 'P-256'
+			},
+			true,
+			['verify']
+		);
 
-	const encoder = new TextEncoder();
-	const dataBuffer = encoder.encode(data);
+		const encoder = new TextEncoder();
+		const dataBuffer = encoder.encode(data);
 
-	return await window.crypto.subtle.verify(
-		{ name: 'RSASSA-PKCS1-v1_5' },
-		publicKey,
-		signature,
-		dataBuffer
-	);
+		return await window.crypto.subtle.verify(
+			{
+				name: 'ECDSA',
+				hash: { name: 'SHA-256' }
+			},
+			publicKey,
+			signature,
+			dataBuffer
+		);
+	} catch (error) {
+		console.error('Verification error:', error);
+		return false;
+	}
 }

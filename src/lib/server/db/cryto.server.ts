@@ -2,6 +2,7 @@ import crypto from 'crypto';
 
 /**
  * Verifies a signature using the stored public key in a Node.js environment.
+ * Uses ECDSA with P-256 curve and SHA-256 hash.
  */
 export async function verifySignature(
 	data: string,
@@ -18,9 +19,12 @@ export async function verifySignature(
 		});
 
 		return crypto.verify(
-			'RSA-SHA256',
+			'sha256',  // Using SHA-256 hash algorithm with ECDSA
 			Buffer.from(data, 'utf-8'),
-			publicKey,
+			{
+				key: publicKey,
+				dsaEncoding: 'ieee-p1363'  // This is the encoding format used by Web Crypto API for ECDSA
+			},
 			Buffer.from(signature)
 		);
 	} catch (error) {
