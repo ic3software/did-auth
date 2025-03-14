@@ -8,21 +8,28 @@
 	let isRegistering = $state(false);
 
 	async function register() {
-        if (!name.trim()) {
+		if (!name.trim()) {
 			errorMessage = 'Please enter your name';
 			return;
 		}
 
-		isRegistering = true;
-		const { success, error, data } = await fetchUsers('POST', { name });
-		if (!success) {
-			errorMessage = `Error: ${error}`;
+		try {
+			isRegistering = true;
+			const { success, error, data } = await fetchUsers('POST', { name });
+			if (!success) {
+				errorMessage = `Error: ${error}`;
+				return
+			}
+			if (data?.public_key) {
+				localStorage.setItem('public_key', data.public_key);
+			}
+			goto('/');
+		} catch (error) {
+			console.error('Error during registration:', error);
+			errorMessage = 'An error occurred during registration';
+		} finally {
+			isRegistering = false;
 		}
-		if (data?.public_key) {
-			localStorage.setItem('public_key', data.public_key);
-		}
-		isRegistering = false;
-        goto('/');
 	}
 
 	onMount(() => {
