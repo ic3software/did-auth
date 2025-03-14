@@ -17,7 +17,9 @@ async function loadKeyPair() {
 	}
 }
 
-export async function fetchUsers(method: string, payload: Record<string, any> = {}) {
+type ApiPayload = Record<string, string | number | boolean | null | undefined>;
+
+export async function fetchUsers(method: string, payload: ApiPayload = {}) {
 	try {
 		await loadKeyPair();
 		const signature = await signRequest(payload, keypair!.privateKey);
@@ -37,7 +39,7 @@ export async function fetchUsers(method: string, payload: Record<string, any> = 
 	}
 }
 
-export async function fetchEmails(method: string, payload: Record<string, any> = {}) {
+export async function fetchEmails(method: string, payload: ApiPayload = {}) {
 	try {
 		await loadKeyPair();
 		const signature = await signRequest(payload, keypair!.privateKey);
