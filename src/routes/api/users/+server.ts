@@ -2,7 +2,7 @@ import { json } from '@sveltejs/kit';
 import { getDB } from '$lib/server/db/db';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
-import { verifySignature } from '$lib/server/db/cryto.server';
+import { verifySignature } from '$lib/server/db/crypto.server';
 import { isValidBase64 } from '$lib/base64Utils';
 import { getUserByName, insertUser } from '$lib/server/models/user';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';

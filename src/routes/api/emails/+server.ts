@@ -3,7 +3,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { isValidBase64 } from '$lib/base64Utils';
-import { verifySignature } from '$lib/server/db/cryto.server';
+import { verifySignature } from '$lib/server/db/crypto.server';
 import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
 import {
 	getEmailByUserIdAndEmail,
