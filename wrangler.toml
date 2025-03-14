@@ -1,8 +1,8 @@
-name = "murmurations_ucans"
+name = "did-auth"
 compatibility_date = "2025-01-14"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "local-ucans"
-database_id = "ed980ab7-ecf5-4677-929a-af871cf8cc69"
+database_name = "did-auth"
+database_id = "aa853f2b-3636-4aa4-844e-e6a084f0ac5d"
 migrations_dir = "drizzle"

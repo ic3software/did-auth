@@ -1,4 +1,4 @@
-# Svelte UCAN
+# DID Auth
 
 ## 1. Install dependencies
 

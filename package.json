@@ -1,5 +1,5 @@
 {
-	"name": "svelte-ucan",
+	"name": "did-auth",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -15,7 +15,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"db:generate": "pnpm exec drizzle-kit generate",
-		"db:migrate": "pnpm exec wrangler d1 migrations apply local-ucans --local"
+		"db:migrate": "pnpm exec wrangler d1 migrations apply did-auth --local"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250303.0",
