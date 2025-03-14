@@ -10,15 +10,15 @@ pnpm install
 
 1. Generate the schema
 
-    ```bash
-    pnpm db:generate
-    ```
+   ```bash
+   pnpm db:generate
+   ```
 
 2. Push the migrations
 
-    ```bash
-    pnpm db:migrate
-    ```
+   ```bash
+   pnpm db:migrate
+   ```
 
 ## 3. Run the app
 

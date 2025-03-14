@@ -12,9 +12,9 @@ export async function generateKeyPair(): Promise<CryptoKeyPair> {
 		false,
 		['sign', 'verify']
 	);
-	
+
 	console.log('ECC key pair generated with non-extractable private key.');
-	
+
 	return keyPair;
 }
 
@@ -49,7 +49,7 @@ export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Pr
 
 	// Store the public key
 	store.put(publicKey, 'publicKey');
-	
+
 	// Store the private key reference
 	// Even though the key is non-extractable, the CryptoKey object itself can be stored
 	// The browser ensures that the key material cannot be extracted
@@ -106,7 +106,7 @@ export async function signData(data: string): Promise<Uint8Array> {
 
 /**
  * Signs a request payload using the provided private key with ECDSA.
- * 
+ *
  * @param payload - The request payload to be signed.
  * @param privateKey - The private key to sign the payload with.
  * @returns A promise that resolves to the signed payload as a base64 string.
@@ -129,7 +129,7 @@ export async function signRequest(payload: object, privateKey: CryptoKey): Promi
 
 /**
  * Exports the public key as a base64 string.
- * 
+ *
  * @param publicKey - The public key to be exported.
  * @returns A promise that resolves to the exported public key as a base64 string.
  */
@@ -153,7 +153,9 @@ export async function verifySignature(
 	exportedPublicKeyString: string
 ): Promise<boolean> {
 	try {
-		const exportedKeyBuffer = Uint8Array.from(atob(exportedPublicKeyString), (c) => c.charCodeAt(0));
+		const exportedKeyBuffer = Uint8Array.from(atob(exportedPublicKeyString), (c) =>
+			c.charCodeAt(0)
+		);
 		const publicKey = await window.crypto.subtle.importKey(
 			'spki',
 			exportedKeyBuffer,

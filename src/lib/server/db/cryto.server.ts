@@ -15,15 +15,15 @@ export async function verifySignature(
 		const publicKey = crypto.createPublicKey({
 			key: publicKeyBuffer,
 			format: 'der',
-			type: 'spki',
+			type: 'spki'
 		});
 
 		return crypto.verify(
-			'sha256',  // Using SHA-256 hash algorithm with ECDSA
+			'sha256', // Using SHA-256 hash algorithm with ECDSA
 			Buffer.from(data, 'utf-8'),
 			{
 				key: publicKey,
-				dsaEncoding: 'ieee-p1363'  // This is the encoding format used by Web Crypto API for ECDSA
+				dsaEncoding: 'ieee-p1363' // This is the encoding format used by Web Crypto API for ECDSA
 			},
 			Buffer.from(signature)
 		);

@@ -18,7 +18,7 @@
 			const { success, error, data } = await fetchUsers('POST', { name });
 			if (!success) {
 				errorMessage = `Error: ${error}`;
-				return
+				return;
 			}
 			if (data?.public_key) {
 				localStorage.setItem('public_key', data.public_key);
