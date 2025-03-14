@@ -4,6 +4,7 @@
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);
+	let hasPublicKey = $state(false);
 
 	async function addEmail() {
 		if (!email) return;
@@ -31,19 +32,22 @@
 		if (data?.success) {
 			emailList = data.data.map((item: { email: string }) => item.email);
 		}
+		hasPublicKey = !!localStorage.getItem('public_key');
 	});
 </script>
 
 <div class="container mx-auto px-4 py-4 break-words">
 	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Web Crypto API + IndexedDB</h1>
-	<div class="mt-4">
-		<a
-			href="/register"
-			class="mt-4 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
-		>
-			Register
-		</a>
-	</div>
+	{#if !hasPublicKey}
+		<div class="mt-4">
+			<a
+				href="/register"
+				class="mt-4 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+			>
+				Register
+			</a>
+		</div>
+	{/if}
 
 	<div class="mt-8">
 		<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Your Email List</h2>
