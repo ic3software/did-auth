@@ -53,8 +53,8 @@ export const GET: RequestHandler = async ({
 		const userEmails = await getEmailsByUserId(db, userId);
 
 		return json({ data: userEmails, success: true }, { status: 200 });
-	} catch (e) {
-		console.error('Error processing GET request:', e);
+	} catch (error) {
+		console.error('Error processing GET request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };
@@ -115,8 +115,8 @@ export const POST: RequestHandler = async ({
 		await insertEmail(db, userId, email);
 
 		return json({ data: { email }, success: true }, { status: 201 });
-	} catch (e) {
-		console.error('Error processing POST request:', e);
+	} catch (error) {
+		console.error('Error processing POST request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };
@@ -175,8 +175,8 @@ export const DELETE: RequestHandler = async ({
 		await deleteEmail(db, existingEmail.id);
 
 		return json({ data: { email }, success: true }, { status: 200 });
-	} catch (e) {
-		console.error('Error processing DELETE request:', e);
+	} catch (error) {
+		console.error('Error processing DELETE request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };

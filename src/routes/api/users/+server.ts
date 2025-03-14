@@ -67,8 +67,8 @@ export const POST: RequestHandler = async ({
 		await insertPublicKey(db, insertedUser.id, xPublicKey);
 
 		return json({ data: { public_key: xPublicKey }, success: true }, { status: 201 });
-	} catch (e) {
-		console.error('Error processing POST request:', e);
+	} catch (error) {
+		console.error('Error processing POST request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };

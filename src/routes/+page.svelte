@@ -19,7 +19,7 @@
 				errorMessage = error || 'Failed to add email.';
 				console.error(errorMessage);
 			}
-		} catch (error: any) {
+		} catch (error) {
 			errorMessage = 'An unexpected error occurred. Error: ' + error;
 			console.error('Error adding email:', error);
 		}
@@ -36,7 +36,7 @@
 				errorMessage = error || 'Failed to remove email.';
 				console.error(errorMessage);
 			}
-		} catch (error: any) {
+		} catch (error) {
 			errorMessage = 'An unexpected error occurred while removing email. Error: ' + error;
 			console.error('Error removing email:', error);
 		}
@@ -51,7 +51,7 @@
 				errorMessage = error || 'Failed to fetch emails.';
 				console.error(errorMessage);
 			}
-		} catch (error: any) {
+		} catch (error) {
 			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
 			console.error('Error fetching emails:', error);
 		}
