@@ -56,6 +56,6 @@ export const POST: RequestHandler = async ({ platform = { env: { DB: {} as D1Dat
         return json({ data: { public_key: xPublicKey }, success: true }, { status: 201 });
     } catch (e) {
         console.error('Error processing POST request:', e);
-        return json({ error: 'Internal Server Error' }, { status: 500 });
+        return json({ error: 'Internal Server Error', success: false }, { status: 500 });
     }
 };

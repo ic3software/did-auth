@@ -5,33 +5,57 @@
 	let email = $state('');
 	let emailList = $state<string[]>([]);
 	let hasPublicKey = $state(false);
+	let errorMessage = $state('');
 
 	async function addEmail() {
 		if (!email) return;
-		const data = await fetchEmails('POST', { email });
-		if (data?.success) {
-			emailList = [...emailList, email];
-			email = '';
-		} else {
-			console.error('Failed to add email.');
+		try {
+			const { success, error } = await fetchEmails('POST', { email });
+			if (success) {
+				emailList = [...emailList, email];
+				email = '';
+				errorMessage = '';
+			} else {
+				errorMessage = error || 'Failed to add email.';
+				console.error(errorMessage);
+			}
+		} catch (error: any) {
+			errorMessage = 'An unexpected error occurred. Error: ' + error;
+			console.error('Error adding email:', error);
 		}
 	}
 
 	async function removeEmail(index: number) {
-		const emailToRemove = emailList[index];
-		const data = await fetchEmails('DELETE', { email: emailToRemove });
-		if (data?.success) {
-			emailList = emailList.filter((_, i) => i !== index);
-		} else {
-			console.error('Failed to remove email.');
+		try {
+			const emailToRemove = emailList[index];
+			const { success, error } = await fetchEmails('DELETE', { email: emailToRemove });
+			if (success) {
+				emailList = emailList.filter((_, i) => i !== index);
+				errorMessage = '';
+			} else {
+				errorMessage = error || 'Failed to remove email.';
+				console.error(errorMessage);
+			}
+		} catch (error: any) {
+			errorMessage = 'An unexpected error occurred while removing email. Error: ' + error;
+			console.error('Error removing email:', error);
 		}
 	}
 
 	onMount(async () => {
-		const data = await fetchEmails('GET');
-		if (data?.success) {
-			emailList = data.data.map((item: { email: string }) => item.email);
+		try {
+			const { success, data, error } = await fetchEmails('GET');
+			if (success) {
+				emailList = data?.map((item: { email: string }) => item.email) || [];
+			} else {
+				errorMessage = error || 'Failed to fetch emails.';
+				console.error(errorMessage);
+			}
+		} catch (error: any) {
+			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
+			console.error('Error fetching emails:', error);
 		}
+
 		hasPublicKey = !!localStorage.getItem('public_key');
 	});
 </script>
@@ -51,6 +75,9 @@
 
 	<div class="mt-8">
 		<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Your Email List</h2>
+		{#if errorMessage}
+			<div class="mt-2 text-red-500">{errorMessage}</div>
+		{/if}
 		<div class="mt-4">
 			<input
 				type="email"

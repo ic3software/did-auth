@@ -30,9 +30,10 @@ export async function fetchUsers(method: string, payload: Record<string, any> = 
             },
             body: method !== 'GET' ? JSON.stringify(payload) : undefined
         });
-        return res.ok ? res.json() : Promise.reject(await res.json());
+        return res.json();
     } catch (error) {
         console.error(`Error during fetchUsers ${method} request:`, error);
+        throw error;
     }
 }
 
@@ -49,8 +50,9 @@ export async function fetchEmails(method: string, payload: Record<string, any> =
             },
             body: method !== 'GET' ? JSON.stringify(payload) : undefined
         });
-        return res.ok ? res.json() : Promise.reject(await res.json());
+        return res.json();
     } catch (error) {
         console.error(`Error during fetchEmails ${method} request:`, error);
+        throw error;
     }
 }
