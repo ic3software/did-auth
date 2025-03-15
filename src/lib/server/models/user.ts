@@ -9,3 +9,7 @@ export async function getUserByName(db: DrizzleD1Database, name: string) {
 export async function insertUser(db: DrizzleD1Database, name: string) {
 	return await db.insert(users).values({ name }).returning({ id: users.id }).get();
 }
+
+export async function getNameById(db: DrizzleD1Database, id: number) {
+	return await db.select({ name: users.name }).from(users).where(eq(users.id, id)).get();
+}
