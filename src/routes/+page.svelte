@@ -5,9 +5,10 @@
 	let email = $state('');
 	let emailList = $state<string[]>([]);
 	let errorMessage = $state('');
-	let hasPublicKey = $state(false);
+	let publicKey = $state<string | null>('');
 	let userNotFound = $state(false);
 	let userName = $state('');
+	let copyButtonText = $state('Copy');
 	let infoMessage = $derived(
 		userNotFound
 			? 'Click Register to create an account.'
@@ -73,7 +74,6 @@
 			const { success, data, error } = await fetchUsers('GET');
 			if (success) {
 				userName = data?.name || '';
-				// If we successfully get the user, make sure userNotFound is false
 				userNotFound = false;
 			} else {
 				if (error === 'User not found') {
@@ -88,8 +88,7 @@
 			console.error('Error fetching user name:', error);
 		}
 
-		hasPublicKey = !!localStorage.getItem('public_key');
-		console.log('hasPublicKey:', hasPublicKey);
+		publicKey = localStorage.getItem('public_key');
 	});
 </script>
 
@@ -111,7 +110,28 @@
 		<div class="mt-8">
 			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
 		</div>
-		<div class="mt-8 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Public Key</h2>
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+			<div class="flex items-center justify-between">
+				<p class="text-gray-900 dark:text-white font-mono overflow-x-auto">{publicKey}</p>
+				<button
+					class="ml-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+					onclick={() => {
+						if (publicKey) {
+							navigator.clipboard.writeText(publicKey);
+							copyButtonText = 'Copied!';
+							setTimeout(() => {
+								copyButtonText = 'Copy';
+							}, 2000);
+						}
+					}}
+				>
+					{copyButtonText}
+				</button>
+			</div>
+		</div>
+		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
 			{#if emailList.length === 0}
 				<div class="flex items-center justify-between">
 					<input
