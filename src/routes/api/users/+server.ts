@@ -7,7 +7,6 @@ import { isValidBase64 } from '$lib/base64Utils';
 import { getNameById, getUserByName, insertUser } from '$lib/server/models/user';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
 
-// TODO: add a GET endpoint to get the user name
 export const GET: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },
 	request
