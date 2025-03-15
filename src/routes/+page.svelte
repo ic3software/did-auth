@@ -4,9 +4,17 @@
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);
-	let hasPublicKey = $state(false);
 	let errorMessage = $state('');
+	let hasPublicKey = $state(false);
+	let userNotFound = $state(false);
 	let userName = $state('');
+	let infoMessage = $derived(
+		userNotFound
+			? 'Click Register to create an account.'
+			: emailList.length === 0
+				? 'No email found. Add your email above.'
+				: ''
+	);
 
 	async function addEmail() {
 		if (!email) return;
@@ -44,87 +52,104 @@
 	}
 
 	onMount(async () => {
-		// try fetch user name here
-		try {
-			const { success, data, error } = await fetchUsers('GET');
-			if (success) {
-				userName = data?.name || '';
-			} else {
-				errorMessage = error || 'Failed to fetch user name.';
-				console.error(errorMessage);
-			}
-		} catch (error) {
-			errorMessage = 'An unexpected error occurred while fetching user name. Error: ' + error;
-			console.error('Error fetching user name:', error);
-		}
-
 		try {
 			const { success, data, error } = await fetchEmails('GET');
 			if (success) {
 				emailList = data?.map((item: { email: string }) => item.email) || [];
 			} else {
-				errorMessage = error || 'Failed to fetch emails.';
-				console.error(errorMessage);
+				if (error === 'User not found') {
+					userNotFound = true;
+				} else {
+					errorMessage = 'Failed to fetch email: ' + error;
+					console.error(errorMessage);
+				}
 			}
 		} catch (error) {
 			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
 			console.error('Error fetching emails:', error);
 		}
 
+		try {
+			const { success, data, error } = await fetchUsers('GET');
+			if (success) {
+				userName = data?.name || '';
+				// If we successfully get the user, make sure userNotFound is false
+				userNotFound = false;
+			} else {
+				if (error === 'User not found') {
+					userNotFound = true;
+				} else {
+					errorMessage = 'Failed to fetch user name: ' + error;
+					console.error(errorMessage);
+				}
+			}
+		} catch (error) {
+			errorMessage = 'An unexpected error occurred while fetching user name. Error: ' + error;
+			console.error('Error fetching user name:', error);
+		}
+
 		hasPublicKey = !!localStorage.getItem('public_key');
+		console.log('hasPublicKey:', hasPublicKey);
 	});
 </script>
 
 <div class="container mx-auto px-4 py-4 break-words">
 	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-		<code>did:key</code> Authentication <em>(Look Ma, No Passwords!)</em>
+		<code class="font-mono">did:key</code>
+		<span class="font-serif">Authentication <em>(Look Ma, No Passwords!)</em></span>
 	</h1>
-	{#if !hasPublicKey}
+	{#if !userName}
 		<div class="mt-4">
 			<a
 				href="/register"
-				class="mt-4 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+				class="mt-8 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 			>
 				Register
 			</a>
 		</div>
-	{/if}
-	{#if userName}
-		<div class="mt-4">
+	{:else}
+		<div class="mt-8">
 			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
 		</div>
-		<div class="mt-8">
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Your Email List</h2>
-			{#if errorMessage}
-				<div class="mt-2 text-red-500">{errorMessage}</div>
-			{/if}
-			<div class="mt-4">
-				<input
-					type="email"
-					bind:value={email}
-					class="w-md rounded-md border p-2 text-gray-900 dark:bg-gray-700 dark:text-white"
-					placeholder="Enter your email"
-				/>
-				<button
-					class="mt-2 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
-					onclick={addEmail}
-				>
-					Add Email
-				</button>
-			</div>
-			<ul class="mt-4">
-				{#each emailList as email, index}
-					<li class="flex items-center justify-between border-b p-2 text-gray-900 dark:text-white">
-						<span>{email}</span>
-						<button
-							class="rounded-md bg-red-500 px-2 py-1 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
-							onclick={() => removeEmail(index)}
+		<div class="mt-8 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+			{#if emailList.length === 0}
+				<div class="flex items-center justify-between">
+					<input
+						type="email"
+						bind:value={email}
+						class="sm:w-md rounded-md border p-2 text-gray-900 dark:bg-gray-700 dark:text-white"
+						placeholder="Enter your email"
+					/>
+					<button
+						class="rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
+						onclick={addEmail}
+					>
+						Add Email
+					</button>
+				</div>
+			{:else}
+				<ul>
+					{#each emailList as email, index}
+						<li
+							class="flex items-center justify-between text-gray-900 dark:text-white"
 						>
-							Delete
-						</button>
-					</li>
-				{/each}
-			</ul>
+							<span>{email}</span>
+							<button
+								class="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+								onclick={() => removeEmail(index)}
+							>
+								Delete
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
 		</div>
+		{#if errorMessage}
+			<div class="mt-2 text-red-500">{errorMessage}</div>
+		{/if}
+		{#if infoMessage}
+			<div class="mt-2 text-blue-500">{infoMessage}</div>
+		{/if}
 	{/if}
 </div>
