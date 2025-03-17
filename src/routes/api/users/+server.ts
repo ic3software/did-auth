@@ -1,11 +1,11 @@
-import { json } from '@sveltejs/kit';
-import { getDB } from '$lib/server/db/db';
-import type { D1Database } from '@cloudflare/workers-types';
-import type { RequestHandler } from '@sveltejs/kit';
-import { verifySignature } from '$lib/server/db/crypto.server';
 import { isValidBase64 } from '$lib/base64Utils';
-import { getNameByUserId, getUserIdByName, insertUser } from '$lib/server/models/user';
+import { verifySignature } from '$lib/server/db/crypto.server';
+import { getDB } from '$lib/server/db/db';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
+import { getNameByUserId, getUserIdByName, insertUser } from '$lib/server/models/user';
+import type { D1Database } from '@cloudflare/workers-types';
+import { json } from '@sveltejs/kit';
+import type { RequestHandler } from '@sveltejs/kit';
 
 export const GET: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },

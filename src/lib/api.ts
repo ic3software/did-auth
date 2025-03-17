@@ -1,4 +1,4 @@
-import { exportPublicKey, getKey, generateKeyPair, signRequest, storeKeys } from './crypto';
+import { exportPublicKey, generateKeyPair, getKey, signRequest, storeKeys } from './crypto';
 
 type ApiPayload = Record<string, string | number | boolean | null | undefined>;
 

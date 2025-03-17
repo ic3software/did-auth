@@ -1,17 +1,17 @@
+import { isValidBase64 } from '$lib/base64Utils';
+import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
+import {
+	checkEmailExists,
+	deleteEmail,
+	getEmailByUserIdAndEmail,
+	getEmailsByUserId,
+	insertEmail
+} from '$lib/server/models/email';
+import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { isValidBase64 } from '$lib/base64Utils';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
-import {
-	getEmailByUserIdAndEmail,
-	getEmailsByUserId,
-	insertEmail,
-	deleteEmail,
-	checkEmailExists
-} from '$lib/server/models/email';
 
 export const GET: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { fetchEmails, fetchUsers } from '$lib/api';
+	import { onMount } from 'svelte';
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);

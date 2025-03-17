@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import { fetchUsers } from '$lib/api';
+	import { onMount } from 'svelte';
 
 	let name = $state('');
 	let errorMessage = $state('');
