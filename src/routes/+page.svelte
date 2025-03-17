@@ -113,7 +113,7 @@
 		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Public Key</h2>
 		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
 			<div class="flex items-center justify-between">
-				<p class="text-gray-900 dark:text-white font-mono overflow-x-auto">{publicKey}</p>
+				<p class="overflow-x-auto font-mono text-gray-900 dark:text-white">{publicKey}</p>
 				<button
 					class="ml-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 					onclick={() => {
@@ -137,7 +137,7 @@
 					<input
 						type="email"
 						bind:value={email}
-						class="sm:w-md rounded-md border p-2 text-gray-900 dark:bg-gray-700 dark:text-white"
+						class="rounded-md border p-2 text-gray-900 sm:w-md dark:bg-gray-700 dark:text-white"
 						placeholder="Enter your email"
 					/>
 					<button
@@ -150,9 +150,7 @@
 			{:else}
 				<ul>
 					{#each emailList as email, index}
-						<li
-							class="flex items-center justify-between text-gray-900 dark:text-white"
-						>
+						<li class="flex items-center justify-between text-gray-900 dark:text-white">
 							<span>{email}</span>
 							<button
 								class="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
