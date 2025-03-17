@@ -1,4 +1,6 @@
-import { getKey, generateKeyPair, storeKeys, signRequest, exportPublicKey } from './crypto';
+import { exportPublicKey, getKey, generateKeyPair, signRequest, storeKeys } from './crypto';
+
+type ApiPayload = Record<string, string | number | boolean | null | undefined>;
 
 let keypair: { publicKey: CryptoKey; privateKey: CryptoKey } | null = null;
 
@@ -17,13 +19,11 @@ async function loadKeyPair() {
 	}
 }
 
-type ApiPayload = Record<string, string | number | boolean | null | undefined>;
-
-export async function fetchUsers(method: string, payload: ApiPayload = {}) {
+async function fetchApi(method: string, endpoint: string, payload: ApiPayload = {}) {
 	try {
 		await loadKeyPair();
 		const signature = await signRequest(payload, keypair!.privateKey);
-		const res = await fetch('/api/users', {
+		const res = await fetch(endpoint, {
 			method,
 			headers: {
 				'Content-Type': 'application/json',
@@ -34,27 +34,15 @@ export async function fetchUsers(method: string, payload: ApiPayload = {}) {
 		});
 		return res.json();
 	} catch (error) {
-		console.error(`Error during fetchUsers ${method} request:`, error);
+		console.error(`Error during ${method} ${endpoint} request:`, error);
 		throw error;
 	}
 }
 
+export async function fetchUsers(method: string, payload: ApiPayload = {}) {
+	return await fetchApi(method, '/api/users', payload);
+}
+
 export async function fetchEmails(method: string, payload: ApiPayload = {}) {
-	try {
-		await loadKeyPair();
-		const signature = await signRequest(payload, keypair!.privateKey);
-		const res = await fetch('/api/emails', {
-			method,
-			headers: {
-				'Content-Type': 'application/json',
-				'X-Signature': signature,
-				'X-Public-Key': await exportPublicKey(keypair!.publicKey)
-			},
-			body: method !== 'GET' ? JSON.stringify(payload) : undefined
-		});
-		return res.json();
-	} catch (error) {
-		console.error(`Error during fetchEmails ${method} request:`, error);
-		throw error;
-	}
+	return await fetchApi(method, '/api/emails', payload);
 }
