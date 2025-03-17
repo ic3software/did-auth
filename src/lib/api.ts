@@ -46,3 +46,7 @@ export async function fetchUsers(method: string, payload: ApiPayload = {}) {
 export async function fetchEmails(method: string, payload: ApiPayload = {}) {
 	return await fetchApi(method, '/api/emails', payload);
 }
+
+export async function fetchKeys(method: string, payload: ApiPayload = {}) {
+	return await fetchApi(method, '/api/keys', payload);
+}

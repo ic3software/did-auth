@@ -11,6 +11,14 @@ export async function getUserIdByPublicKey(db: DrizzleD1Database, publicKey: str
 		.get();
 }
 
+export async function getPublicKeysByUserId(db: DrizzleD1Database, userId: number) {
+	return await db
+		.select({ publicKey: publicKeys.publicKey })
+		.from(publicKeys)
+		.where(eq(publicKeys.userId, userId))
+		.all();
+}
+
 export async function insertPublicKey(db: DrizzleD1Database, userId: number, publicKey: string) {
 	return await db
 		.insert(publicKeys)

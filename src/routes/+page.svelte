@@ -1,14 +1,13 @@
 <script lang="ts">
-	import { fetchEmails, fetchUsers } from '$lib/api';
+	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
 	import { onMount } from 'svelte';
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);
+	let publicKeyList = $state<string[]>([]);
 	let errorMessage = $state('');
-	let publicKey = $state<string | null>('');
 	let userNotFound = $state(false);
 	let userName = $state('');
-	let copyButtonText = $state('Copy');
 	let infoMessage = $derived(
 		userNotFound
 			? 'Click Register to create an account.'
@@ -88,7 +87,18 @@
 			console.error('Error fetching user name:', error);
 		}
 
-		publicKey = localStorage.getItem('public_key');
+		try {
+			const { success, data, error } = await fetchKeys('GET');
+			if (success) {
+				publicKeyList = data?.map((item: { publicKey: string }) => item.publicKey) || [];
+			} else {
+				errorMessage = 'Failed to fetch email: ' + error;
+				console.error(errorMessage);
+			}
+		} catch (error) {
+			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
+			console.error('Error fetching emails:', error);
+		}
 	});
 </script>
 
@@ -110,24 +120,16 @@
 		<div class="mt-8">
 			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
 		</div>
-		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Public Key</h2>
+		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
+			{publicKeyList.length > 1 ? 'Your Public Keys' : 'Your Public Key'}
+		</h2>
 		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
 			<div class="flex items-center justify-between">
-				<p class="overflow-x-auto font-mono text-gray-900 dark:text-white">{publicKey}</p>
-				<button
-					class="ml-2 rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
-					onclick={() => {
-						if (publicKey) {
-							navigator.clipboard.writeText(publicKey);
-							copyButtonText = 'Copied!';
-							setTimeout(() => {
-								copyButtonText = 'Copy';
-							}, 2000);
-						}
-					}}
-				>
-					{copyButtonText}
-				</button>
+				<ul class="mt-2 list-decimal list-inside">
+					{#each publicKeyList as publicKey}
+							<li class="break-all mb-2">{publicKey}</li>
+					{/each}
+				</ul>
 			</div>
 		</div>
 		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
