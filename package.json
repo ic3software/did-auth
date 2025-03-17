@@ -46,6 +46,9 @@
 		"vitest": "^3.0.0",
 		"wrangler": "^3.114.0"
 	},
+	"engines": {
+		"node": ">=22.14.0"
+	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
 			"esbuild"
