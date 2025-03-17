@@ -1,20 +1,4 @@
 /**
- * Generates an ECC key pair using Web Crypto API.
- */
-export async function generateKeyPair(): Promise<CryptoKeyPair> {
-	const keyPair = await window.crypto.subtle.generateKey(
-		{
-			name: 'ECDSA',
-			namedCurve: 'P-256' // Using P-256 curve for ECDSA
-		},
-		false, // Private key is not extractable, ensuring it cannot be exported
-		['sign', 'verify']
-	);
-
-	return keyPair;
-}
-
-/**
  * Opens IndexedDB and ensures the object store exists.
  */
 function openDatabase(): Promise<IDBDatabase> {
@@ -31,6 +15,22 @@ function openDatabase(): Promise<IDBDatabase> {
 		request.onsuccess = (event: Event) => resolve((event.target as IDBOpenDBRequest).result);
 		request.onerror = () => reject(request.error);
 	});
+}
+
+/**
+ * Generates an ECC key pair using Web Crypto API.
+ */
+export async function generateKeyPair(): Promise<CryptoKeyPair> {
+	const keyPair = await window.crypto.subtle.generateKey(
+		{
+			name: 'ECDSA',
+			namedCurve: 'P-256' // Using P-256 curve for ECDSA
+		},
+		false, // Private key is not extractable, ensuring it cannot be exported
+		['sign', 'verify']
+	);
+
+	return keyPair;
 }
 
 /**
