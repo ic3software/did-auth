@@ -4,7 +4,7 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { isValidBase64 } from '$lib/base64Utils';
-import { getNameById, getUserByName, insertUser } from '$lib/server/models/user';
+import { getNameByUserId, getUserIdByName, insertUser } from '$lib/server/models/user';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
 
 export const GET: RequestHandler = async ({
@@ -44,7 +44,7 @@ export const GET: RequestHandler = async ({
 		}
 
 		const userId = userByPublicKey.userId;
-		const userName = await getNameById(db, userId);
+		const userName = await getNameByUserId(db, userId);
 
 		return json({ data: userName, success: true }, { status: 200 });
 	} catch (error) {
@@ -90,19 +90,19 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
 		}
 
-		const [userByName, userByPublicKey] = await Promise.all([
-			getUserByName(db, name),
+		const [userIdByName, userIdByPublicKey] = await Promise.all([
+			getUserIdByName(db, name),
 			getUserIdByPublicKey(db, xPublicKey)
 		]);
 
-		if (userByName) {
-			if (userByPublicKey?.userId === userByName.id) {
+		if (userIdByName) {
+			if (userIdByPublicKey?.userId === userIdByName.id) {
 				return json({ data: { public_key: xPublicKey }, success: true }, { status: 200 });
 			}
 			return json({ error: 'Public key mismatch', success: false }, { status: 403 });
 		}
 
-		if (userByPublicKey) {
+		if (userIdByPublicKey) {
 			return json(
 				{ error: 'Public key already exists, please reset your keypairs', success: false },
 				{ status: 403 }
