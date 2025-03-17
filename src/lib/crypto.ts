@@ -1,19 +1,15 @@
 /**
  * Generates an ECC key pair using Web Crypto API.
- * Uses the P-256 curve for ECDSA.
- * The private key is marked as non-extractable, ensuring it cannot be exported.
  */
 export async function generateKeyPair(): Promise<CryptoKeyPair> {
 	const keyPair = await window.crypto.subtle.generateKey(
 		{
 			name: 'ECDSA',
-			namedCurve: 'P-256'
+			namedCurve: 'P-256' // Using P-256 curve for ECDSA
 		},
-		false,
+		false, // Private key is not extractable, ensuring it cannot be exported
 		['sign', 'verify']
 	);
-
-	console.log('ECC key pair generated with non-extractable private key.');
 
 	return keyPair;
 }
@@ -38,26 +34,23 @@ function openDatabase(): Promise<IDBDatabase> {
 }
 
 /**
- * Stores the generated keys securely in IndexedDB.
- * The private key is stored as a CryptoKey object but remains non-extractable.
- * This means the key can be used for operations but cannot be exported or viewed.
+ * Stores the generated key pair securely in IndexedDB.
  */
 export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Promise<void> {
 	const db = await openDatabase();
 	const transaction = db.transaction('keys', 'readwrite');
 	const store = transaction.objectStore('keys');
 
-	// Store the public key
+	// Store the public key.
 	store.put(publicKey, 'publicKey');
 
-	// Store the private key reference
-	// Even though the key is non-extractable, the CryptoKey object itself can be stored
-	// The browser ensures that the key material cannot be extracted
+	// Store the private key reference.
+	// The private key is stored as a CryptoKey object but remains non-extractable.
+	// It can be used for operations but cannot be exported or viewed.
 	store.put(privateKey, 'privateKey');
 
 	return new Promise((resolve, reject) => {
 		transaction.oncomplete = () => {
-			console.log('ECC keys successfully stored in IndexedDB. Private key is non-extractable.');
 			resolve();
 		};
 		transaction.onerror = () => reject(transaction.error);
@@ -66,7 +59,6 @@ export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Pr
 
 /**
  * Retrieves a stored key (either public or private) from IndexedDB.
- * Ensures the object store exists before accessing.
  */
 export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<CryptoKey | null> {
 	const db = await openDatabase();
@@ -81,35 +73,7 @@ export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<Crypt
 }
 
 /**
- * Signs data using the stored private key with ECDSA.
- */
-export async function signData(data: string): Promise<Uint8Array> {
-	const privateKey = await getKey('privateKey');
-	if (!privateKey) throw new Error('Private key not found in IndexedDB.');
-
-	console.log('privateKey', privateKey);
-
-	const encoder = new TextEncoder();
-	const dataBuffer = encoder.encode(data);
-
-	const signature = await window.crypto.subtle.sign(
-		{
-			name: 'ECDSA',
-			hash: { name: 'SHA-256' }
-		},
-		privateKey,
-		dataBuffer
-	);
-
-	return new Uint8Array(signature);
-}
-
-/**
  * Signs a request payload using the provided private key with ECDSA.
- *
- * @param payload - The request payload to be signed.
- * @param privateKey - The private key to sign the payload with.
- * @returns A promise that resolves to the signed payload as a base64 string.
  */
 export async function signRequest(payload: object, privateKey: CryptoKey): Promise<string> {
 	const encoder = new TextEncoder();
@@ -124,14 +88,11 @@ export async function signRequest(payload: object, privateKey: CryptoKey): Promi
 		dataBuffer
 	);
 
-	return btoa(String.fromCharCode(...new Uint8Array(signature)));
+	return btoa(String.fromCharCode(...new Uint8Array(signature))); // Convert signature to base64 string
 }
 
 /**
  * Exports the public key as a base64 string.
- *
- * @param publicKey - The public key to be exported.
- * @returns A promise that resolves to the exported public key as a base64 string.
  */
 export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
 	try {
@@ -145,7 +106,7 @@ export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
 }
 
 /**
- * Verifies a signature using ECDSA with the provided public key.
+ * Verifies a signature using the provided public key.
  */
 export async function verifySignature(
 	data: string,

@@ -1,8 +1,7 @@
 import crypto from 'crypto';
 
 /**
- * Verifies a signature using the stored public key in a Node.js environment.
- * Uses ECDSA with P-256 curve and SHA-256 hash.
+ * Verifies a signature using the provided public key in a Node.js environment.
  */
 export async function verifySignature(
 	data: string,
@@ -15,7 +14,7 @@ export async function verifySignature(
 		const publicKey = crypto.createPublicKey({
 			key: publicKeyBuffer,
 			format: 'der',
-			type: 'spki'
+			type: 'spki' // Using SPKI format for public key (ECDSA with P-256 curve)
 		});
 
 		return crypto.verify(
