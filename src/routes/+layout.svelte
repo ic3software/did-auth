@@ -22,12 +22,6 @@
 			};
 		}
 	});
-
-	$effect(() => {
-		if (typeof window !== 'undefined') {
-			document.documentElement.classList.toggle('dark', darkMode);
-		}
-	});
 </script>
 
 <div
