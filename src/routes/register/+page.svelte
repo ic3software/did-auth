@@ -34,7 +34,8 @@
 			const { success } = await fetchKeys('GET');
 			if (success) {
 				goto('/', {
-					state: { message: 'You have already signed in' }
+					state: { message: 'You have already signed in' },
+					replaceState: true
 				});
 			}
 		} catch (error) {
