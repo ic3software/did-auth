@@ -99,7 +99,7 @@ export const POST: RequestHandler = async ({
 			if (userIdByPublicKey?.userId === userIdByName.id) {
 				return json({ data: { public_key: xPublicKey }, success: true }, { status: 200 });
 			}
-			return json({ error: 'Public key mismatch', success: false }, { status: 403 });
+			return json({ error: 'User already exists', success: false }, { status: 403 });
 		}
 
 		if (userIdByPublicKey) {
