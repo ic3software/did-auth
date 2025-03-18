@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { fetchUsers } from '$lib/api';
+	import { fetchKeys, fetchUsers } from '$lib/api';
 	import { onMount } from 'svelte';
 
 	let name = $state('');
@@ -15,13 +15,10 @@
 
 		try {
 			isRegistering = true;
-			const { success, error, data } = await fetchUsers('POST', { name });
+			const { success, error } = await fetchUsers('POST', { name });
 			if (!success) {
 				errorMessage = `Error: ${error}`;
 				return;
-			}
-			if (data?.public_key) {
-				localStorage.setItem('public_key', data.public_key);
 			}
 			goto('/');
 		} catch (error) {
@@ -32,9 +29,15 @@
 		}
 	}
 
-	onMount(() => {
-		if (localStorage.getItem('public_key')) {
-			goto('/');
+	onMount(async () => {
+		try {
+			const { success } = await fetchKeys('GET');
+			if (success) {
+				goto('/');
+			}
+		} catch (error) {
+			errorMessage = 'An unexpected error occurred while verifying login status. Error: ' + error;
+			console.error('Error verifying login status:', error);
 		}
 	});
 </script>
