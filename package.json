@@ -56,7 +56,6 @@
 		]
 	},
 	"dependencies": {
-		"@stablelib/ed25519": "^2.0.2",
 		"drizzle-orm": "^0.40.0",
 		"uint8arrays": "^5.1.0"
 	}
