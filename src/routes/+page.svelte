@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
-	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
 	import type { Page } from '@sveltejs/kit';
+	import { onMount } from 'svelte';
 
 	interface CustomPageState extends Page {
 		state: {
@@ -68,7 +68,7 @@
 			if (userResult.success) {
 				userName = userResult.data?.name || '';
 				userNotFound = false;
-				
+
 				const [emailsResult, keysResult] = await Promise.all([
 					fetchEmails('GET'),
 					fetchKeys('GET')
@@ -82,7 +82,8 @@
 				}
 
 				if (keysResult.success) {
-					publicKeyList = keysResult.data?.map((item: { publicKey: string }) => item.publicKey) || [];
+					publicKeyList =
+						keysResult.data?.map((item: { publicKey: string }) => item.publicKey) || [];
 				} else {
 					errorMessage = 'Failed to fetch keys: ' + keysResult.error;
 					console.error(errorMessage);
@@ -107,7 +108,9 @@
 		<span class="font-serif">Authentication <em>(Look Ma, No Passwords!)</em></span>
 	</h1>
 	{#if typedPage?.state?.message}
-		<div class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200">
+		<div
+			class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
+		>
 			{typedPage.state.message}
 		</div>
 	{/if}
@@ -129,9 +132,9 @@
 		</h2>
 		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
 			<div class="flex items-center justify-between">
-				<ul class="mt-2 list-decimal list-inside">
+				<ul class="mt-2 list-inside list-decimal">
 					{#each publicKeyList as publicKey}
-						<li class="break-all mb-2">{publicKey}</li>
+						<li class="mb-2 break-all">{publicKey}</li>
 					{/each}
 				</ul>
 			</div>

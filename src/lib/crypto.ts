@@ -1,6 +1,4 @@
 import * as uint8arrays from 'uint8arrays';
-import { generateKeyPair as generateEd25519KeyPair, sign } from '@stablelib/ed25519';
-import { isValidBase58btc } from './base58btcUtils';
 
 /**
  * Opens IndexedDB and ensures the object store exists.
@@ -24,18 +22,22 @@ function openDatabase(): Promise<IDBDatabase> {
 /**
  * Generates an Ed25519 key pair.
  */
-export async function generateKeyPair(): Promise<{ publicKey: Uint8Array; privateKey: Uint8Array }> {
-	const keyPair = generateEd25519KeyPair();
-	return {
-		publicKey: keyPair.publicKey,
-		privateKey: keyPair.secretKey
-	};
+export async function generateKeyPair(): Promise<CryptoKeyPair> {
+	const keyPair = (await crypto.subtle.generateKey(
+		{
+			name: 'Ed25519'
+		},
+		false,
+		['sign', 'verify']
+	)) as CryptoKeyPair;
+
+	return keyPair;
 }
 
 /**
  * Stores the generated key pair securely in IndexedDB.
  */
-export async function storeKeys(publicKey: Uint8Array, privateKey: Uint8Array): Promise<void> {
+export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Promise<void> {
 	const db = await openDatabase();
 	const transaction = db.transaction('keys', 'readwrite');
 	const store = transaction.objectStore('keys');
@@ -57,7 +59,7 @@ export async function storeKeys(publicKey: Uint8Array, privateKey: Uint8Array): 
 /**
  * Retrieves a stored key (either public or private) from IndexedDB.
  */
-export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<Uint8Array | null> {
+export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<CryptoKey | null> {
 	const db = await openDatabase();
 	const transaction = db.transaction('keys', 'readonly');
 	const store = transaction.objectStore('keys');
@@ -72,24 +74,37 @@ export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<Uint8
 /**
  * Signs a request payload using the provided private key with Ed25519.
  */
-export function signRequest(payload: unknown, privateKey: Uint8Array): string {
-	const data = JSON.stringify(payload);
-	const signature = sign(privateKey, new TextEncoder().encode(data));
-	return uint8arrays.toString(signature, 'base58btc');
+export async function signRequest(payload: unknown, privateKey: CryptoKey): Promise<string> {
+	try {
+		// For empty payloads, use an empty object string
+		const data = payload === undefined || payload === null ? '{}' : JSON.stringify(payload);
+		const signature = await crypto.subtle.sign(
+			{
+				name: 'Ed25519'
+			},
+			privateKey,
+			new TextEncoder().encode(data)
+		);
+		return uint8arrays.toString(new Uint8Array(signature), 'base58btc');
+	} catch (error) {
+		console.error('Error signing request:', error);
+		throw new Error('Failed to sign request');
+	}
 }
 
 /**
  * Exports the public key as a base58btc string.
  */
-export async function exportPublicKey(publicKey: Uint8Array): Promise<string> {
+export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
 	try {
-		return uint8arrays.toString(publicKey, 'base58btc');
+		const exported = await crypto.subtle.exportKey('raw', publicKey);
+		return uint8arrays.toString(new Uint8Array(exported), 'base58btc');
 	} catch (error) {
 		console.error('Error exporting public key:', error);
-		throw new Error('Failed to export public key.');
+		throw new Error('Failed to export public key');
 	}
 }
 
 export function isValidSignature(signature: string): boolean {
-	return isValidBase58btc(signature);
+	return /^[1-9A-HJ-NP-Za-km-z]+$/.test(signature);
 }

@@ -2,14 +2,14 @@ import { exportPublicKey, generateKeyPair, getKey, signRequest, storeKeys } from
 
 type ApiPayload = Record<string, string | number | boolean | null | undefined>;
 
-let keypair: { publicKey: Uint8Array; privateKey: Uint8Array } | null = null;
+let keypair: { publicKey: CryptoKey; privateKey: CryptoKey } | null = null;
 
 async function loadKeyPair() {
 	if (!keypair) {
 		const storedPrivateKey = await getKey('privateKey');
 		if (storedPrivateKey) {
 			keypair = {
-				publicKey: (await getKey('publicKey')) as Uint8Array,
+				publicKey: (await getKey('publicKey')) as CryptoKey,
 				privateKey: storedPrivateKey
 			};
 		} else {
@@ -22,7 +22,7 @@ async function loadKeyPair() {
 async function fetchApi(method: string, endpoint: string, payload: ApiPayload = {}) {
 	try {
 		await loadKeyPair();
-		const signature = signRequest(payload, keypair!.privateKey);
+		const signature = await signRequest(payload, keypair!.privateKey);
 		const res = await fetch(endpoint, {
 			method,
 			headers: {

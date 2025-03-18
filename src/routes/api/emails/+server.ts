@@ -12,7 +12,6 @@ import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import * as uint8arrays from 'uint8arrays';
 
 export const GET: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },
@@ -23,23 +22,20 @@ export const GET: RequestHandler = async ({
 		const xPublicKey = request.headers.get('X-Public-Key');
 		const xSignature = request.headers.get('X-Signature');
 
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
+		if (!xPublicKey) {
+			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
+		}
+
+		// If no signature is provided, this is a new user
+		if (!xSignature) {
+			return json({ error: 'User not found', success: false }, { status: 404 });
 		}
 
 		if (!isValidBase58btc(xSignature)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const publicKeyBytes = uint8arrays.fromString(xPublicKey, 'base58btc');
-		const isVerified = verifySignature(
-			`{}`,
-			xSignature,
-			publicKeyBytes
-		);
+		const isVerified = verifySignature(`{}`, xSignature, xPublicKey);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
@@ -88,12 +84,7 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const publicKeyBytes = uint8arrays.fromString(xPublicKey, 'base58btc');
-		const isVerified = verifySignature(
-			JSON.stringify(body),
-			xSignature,
-			publicKeyBytes
-		);
+		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
@@ -151,12 +142,7 @@ export const DELETE: RequestHandler = async ({
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const publicKeyBytes = uint8arrays.fromString(xPublicKey, 'base58btc');
-		const isVerified = verifySignature(
-			JSON.stringify(body),
-			xSignature,
-			publicKeyBytes
-		);
+		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
