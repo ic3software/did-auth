@@ -1,6 +1,16 @@
 <script lang="ts">
 	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import type { Page } from '@sveltejs/kit';
+
+	interface CustomPageState extends Page {
+		state: {
+			message?: string;
+		};
+	}
+
+	let typedPage = page as unknown as CustomPageState;
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);
@@ -107,6 +117,11 @@
 		<code class="font-mono">did:key</code>
 		<span class="font-serif">Authentication <em>(Look Ma, No Passwords!)</em></span>
 	</h1>
+	{#if typedPage?.state?.message}
+		<div class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200">
+			{typedPage.state.message}
+		</div>
+	{/if}
 	{#if !userName}
 		<div class="mt-4">
 			<a

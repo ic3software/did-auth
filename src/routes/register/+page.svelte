@@ -33,7 +33,9 @@
 		try {
 			const { success } = await fetchKeys('GET');
 			if (success) {
-				goto('/');
+				goto('/', {
+					state: { message: 'You have already signed in' }
+				});
 			}
 		} catch (error) {
 			errorMessage = 'An unexpected error occurred while verifying login status. Error: ' + error;
