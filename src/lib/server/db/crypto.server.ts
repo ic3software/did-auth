@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-
+import * as uint8arrays from 'uint8arrays';
 /**
  * Verifies a signature using the provided public key in a Node.js environment.
  */
@@ -9,7 +9,8 @@ export async function verifySignature(
 	exportedPublicKeyString: string
 ): Promise<boolean> {
 	try {
-		const publicKeyBuffer = Buffer.from(exportedPublicKeyString, 'base64');
+		const publicKeyBytes = uint8arrays.fromString(exportedPublicKeyString, 'base58btc');
+		const publicKeyBuffer = Buffer.from(publicKeyBytes);
 
 		const publicKey = crypto.createPublicKey({
 			key: publicKeyBuffer,

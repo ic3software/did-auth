@@ -1,3 +1,5 @@
+import * as uint8arrays from 'uint8arrays';
+
 /**
  * Opens IndexedDB and ensures the object store exists.
  */
@@ -97,8 +99,11 @@ export async function signRequest(payload: object, privateKey: CryptoKey): Promi
 export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
 	try {
 		const exportedKey = await window.crypto.subtle.exportKey('spki', publicKey);
-		const publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
-		return publicKeyString;
+		const publicKeyString = new Uint8Array(exportedKey);
+
+		// Convert to base58btc
+		const base58Key = uint8arrays.toString(publicKeyString, 'base58btc');
+		return base58Key;
 	} catch (error) {
 		console.error('Error exporting public key:', error);
 		throw new Error('Failed to export public key.');
