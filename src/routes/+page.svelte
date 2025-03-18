@@ -63,51 +63,40 @@
 
 	onMount(async () => {
 		try {
-			const { success, data, error } = await fetchEmails('GET');
-			if (success) {
-				emailList = data?.map((item: { email: string }) => item.email) || [];
-			} else {
-				if (error === 'User not found') {
-					userNotFound = true;
-				} else {
-					errorMessage = 'Failed to fetch email: ' + error;
-					console.error(errorMessage);
-				}
-			}
-		} catch (error) {
-			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
-			console.error('Error fetching emails:', error);
-		}
+			const userResult = await fetchUsers('GET');
 
-		try {
-			const { success, data, error } = await fetchUsers('GET');
-			if (success) {
-				userName = data?.name || '';
+			if (userResult.success) {
+				userName = userResult.data?.name || '';
 				userNotFound = false;
-			} else {
-				if (error === 'User not found') {
-					userNotFound = true;
+				
+				const [emailsResult, keysResult] = await Promise.all([
+					fetchEmails('GET'),
+					fetchKeys('GET')
+				]);
+
+				if (emailsResult.success) {
+					emailList = emailsResult.data?.map((item: { email: string }) => item.email) || [];
 				} else {
-					errorMessage = 'Failed to fetch user name: ' + error;
+					errorMessage = 'Failed to fetch email: ' + emailsResult.error;
 					console.error(errorMessage);
 				}
-			}
-		} catch (error) {
-			errorMessage = 'An unexpected error occurred while fetching user name. Error: ' + error;
-			console.error('Error fetching user name:', error);
-		}
 
-		try {
-			const { success, data, error } = await fetchKeys('GET');
-			if (success) {
-				publicKeyList = data?.map((item: { publicKey: string }) => item.publicKey) || [];
+				if (keysResult.success) {
+					publicKeyList = keysResult.data?.map((item: { publicKey: string }) => item.publicKey) || [];
+				} else {
+					errorMessage = 'Failed to fetch keys: ' + keysResult.error;
+					console.error(errorMessage);
+				}
+			} else if (userResult.error === 'User not found') {
+				errorMessage = 'User not found';
+				userNotFound = true;
 			} else {
-				errorMessage = 'Failed to fetch email: ' + error;
-				console.error(errorMessage);
+				console.error('Error fetching user:', userResult.error);
+				errorMessage = 'Failed to fetch user name: ' + userResult.error;
 			}
 		} catch (error) {
-			errorMessage = 'An unexpected error occurred while fetching emails. Error: ' + error;
-			console.error('Error fetching emails:', error);
+			console.error('Error in onMount:', error);
+			errorMessage = 'An unexpected error occurred. Error: ' + error;
 		}
 	});
 </script>
@@ -142,7 +131,7 @@
 			<div class="flex items-center justify-between">
 				<ul class="mt-2 list-decimal list-inside">
 					{#each publicKeyList as publicKey}
-							<li class="break-all mb-2">{publicKey}</li>
+						<li class="break-all mb-2">{publicKey}</li>
 					{/each}
 				</ul>
 			</div>

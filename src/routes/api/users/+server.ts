@@ -1,4 +1,4 @@
-import { isValidBase64 } from '$lib/base64Utils';
+import { isValidBase58btc } from '$lib/base58btcUtils';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
@@ -6,6 +6,7 @@ import { getNameByUserId, getUserIdByName, insertUser } from '$lib/server/models
 import type { D1Database } from '@cloudflare/workers-types';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
+import * as uint8arrays from 'uint8arrays';
 
 export const GET: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },
@@ -23,14 +24,15 @@ export const GET: RequestHandler = async ({
 			);
 		}
 
-		if (!isValidBase64(xSignature)) {
+		if (!isValidBase58btc(xSignature)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const isVerified = await verifySignature(
+		const publicKeyBytes = uint8arrays.fromString(xPublicKey, 'base58btc');
+		const isVerified = verifySignature(
 			`{}`,
-			Uint8Array.from(atob(xSignature), (c) => c.charCodeAt(0)),
-			xPublicKey
+			xSignature,
+			publicKeyBytes
 		);
 
 		if (!isVerified) {
@@ -76,14 +78,15 @@ export const POST: RequestHandler = async ({
 			);
 		}
 
-		if (!isValidBase64(xSignature)) {
+		if (!isValidBase58btc(xSignature)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const isVerified = await verifySignature(
+		const publicKeyBytes = uint8arrays.fromString(xPublicKey, 'base58btc');
+		const isVerified = verifySignature(
 			JSON.stringify(body),
-			Uint8Array.from(atob(xSignature), (c) => c.charCodeAt(0)),
-			xPublicKey
+			xSignature,
+			publicKeyBytes
 		);
 
 		if (!isVerified) {
