@@ -1,8 +1,15 @@
 import { isValidBase58btc } from '$lib/base58btcUtils';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
-import { getPublicKeysByUserId, getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
-import { isTokenValidAndGetUserId, deleteRegistrationToken } from '$lib/server/models/registrationToken';
+import {
+	getPublicKeysByUserId,
+	getUserIdByPublicKey,
+	insertPublicKey
+} from '$lib/server/models/publicKey';
+import {
+	deleteRegistrationToken,
+	isTokenValidAndGetUserId
+} from '$lib/server/models/registrationToken';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';

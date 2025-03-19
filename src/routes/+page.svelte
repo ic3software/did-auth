@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { fetchEmails, fetchKeys, fetchUsers, fetchTokens } from '$lib/api';
+	import { fetchEmails, fetchKeys, fetchTokens, fetchUsers } from '$lib/api';
 	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
@@ -134,14 +134,16 @@
 		<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
 			Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how to
 			enable it:
-			<ol class="list-decimal pl-4 mt-2">
-				<li>Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address bar and press Enter.</li>
-				<li>In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type "Experimental Web Platform
-					features".
+			<ol class="mt-2 list-decimal pl-4">
+				<li>
+					Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address
+					bar and press Enter.
 				</li>
 				<li>
-					Find the "Experimental Web Platform features" flag.
+					In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type
+					"Experimental Web Platform features".
 				</li>
+				<li>Find the "Experimental Web Platform features" flag.</li>
 				<li>Click the dropdown menu next to it and select "Enabled".</li>
 				<li>After enabling the flag, you will be prompted to restart the browser.</li>
 				<li>Click "Relaunch" to restart and try loading this page again.</li>

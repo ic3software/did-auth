@@ -40,8 +40,7 @@ export const registrationTokens = sqliteTable('registration_tokens', {
 		.notNull()
 		.references(() => users.id, { onDelete: 'cascade' }),
 	token: text('token').unique().notNull(),
-	expiresAt: integer('expires_at', { mode: 'timestamp' })
-		.notNull(),
+	expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
 	createdAt: integer('created_at')
 		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`)
