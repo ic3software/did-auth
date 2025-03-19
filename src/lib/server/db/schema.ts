@@ -49,7 +49,8 @@ export const registrationTokens = sqliteTable('registration_tokens', {
 
 export const usersRelations = relations(users, ({ many }) => ({
 	publicKeys: many(publicKeys),
-	emails: many(emails)
+	emails: many(emails),
+	registrationTokens: many(registrationTokens)
 }));
 
 export const publicKeysRelations = relations(publicKeys, ({ one }) => ({
