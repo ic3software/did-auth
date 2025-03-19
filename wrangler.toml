@@ -1,5 +1,5 @@
 name = "did-auth"
-compatibility_date = "2025-01-14"
+compatibility_date = "2025-03-19"
 
 [[d1_databases]]
 binding = "DB"
