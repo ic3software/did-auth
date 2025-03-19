@@ -130,6 +130,24 @@
 			{typedPage.state.message}
 		</div>
 	{/if}
+	{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
+		<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
+			Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how to
+			enable it:
+			<ol class="list-decimal pl-4 mt-2">
+				<li>Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address bar and press Enter.</li>
+				<li>In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type "Experimental Web Platform
+					features".
+				</li>
+				<li>
+					Find the "Experimental Web Platform features" flag.
+				</li>
+				<li>Click the dropdown menu next to it and select "Enabled".</li>
+				<li>After enabling the flag, you will be prompted to restart the browser.</li>
+				<li>Click "Relaunch" to restart and try loading this page again.</li>
+			</ol>
+		</div>
+	{/if}
 	{#if !userName}
 		<div class="mt-4">
 			<a
