@@ -104,7 +104,3 @@ export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
 		throw new Error('Failed to export public key');
 	}
 }
-
-export function isValidSignature(signature: string): boolean {
-	return /^[1-9A-HJ-NP-Za-km-z]+$/.test(signature);
-}
