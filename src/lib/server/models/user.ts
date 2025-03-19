@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
+import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 
 export async function getUserIdByName(db: DrizzleD1Database, name: string) {

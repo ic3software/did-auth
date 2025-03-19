@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
+import { eq } from 'drizzle-orm';
 import { publicKeys } from '../db/schema';
 
 export async function getUserIdByPublicKey(db: DrizzleD1Database, publicKey: string) {

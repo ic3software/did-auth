@@ -1,6 +1,6 @@
-import { and, eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
+import { and, eq } from 'drizzle-orm';
 import { emails } from '../db/schema';
 
 export async function getEmailsByUserId(db: DrizzleD1Database, userId: number) {

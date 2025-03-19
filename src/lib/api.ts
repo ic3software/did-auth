@@ -50,3 +50,7 @@ export async function fetchEmails(method: string, payload: ApiPayload = {}) {
 export async function fetchKeys(method: string, payload: ApiPayload = {}) {
 	return await fetchApi(method, '/api/keys', payload);
 }
+
+export async function fetchTokens(method: string, payload: ApiPayload = {}) {
+	return await fetchApi(method, '/api/tokens', payload);
+}

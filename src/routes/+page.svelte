@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
+	import { fetchEmails, fetchKeys, fetchUsers, fetchTokens } from '$lib/api';
 	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
@@ -25,6 +25,8 @@
 				? 'No email found. Add your email above.'
 				: ''
 	);
+	let token = $state('');
+	let link = $state('');
 
 	async function addEmail() {
 		if (!email) return;
@@ -59,6 +61,20 @@
 			errorMessage = 'An unexpected error occurred while removing email. Error: ' + error;
 			console.error('Error removing email:', error);
 		}
+	}
+
+	async function generateLink() {
+		const { data, success } = await fetchTokens('POST');
+		if (success) {
+			token = data.token;
+			link = `${window.location.origin}/setup?token=${token}`;
+		}
+	}
+
+	function copyToClipboard() {
+		navigator.clipboard.writeText(link).then(() => {
+			alert('Link copied!');
+		});
 	}
 
 	onMount(async () => {
@@ -178,5 +194,22 @@
 		{#if infoMessage}
 			<div class="mt-2 text-blue-500">{infoMessage}</div>
 		{/if}
+		<div class="mt-8">
+			<button
+				class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+				onclick={generateLink}
+			>
+				Generate Registration Link
+			</button>
+			{#if link}
+				<p class="mt-4 text-gray-900 dark:text-white">Your Link: {link}</p>
+				<button
+					class="mt-2 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
+					onclick={copyToClipboard}
+				>
+					Copy Link
+				</button>
+			{/if}
+		</div>
 	{/if}
 </div>
