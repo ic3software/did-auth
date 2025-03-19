@@ -14,7 +14,14 @@ export async function isTokenValidAndGetUserId(db: DrizzleD1Database, token: str
     return result ? result.userId : null;
 }
 
-
 export async function insertRegistrationToken(db: DrizzleD1Database, userId: number, token: string) {
     return await db.insert(registrationTokens).values({ token, userId, expiresAt: sql`(strftime('%s', 'now') + 300)` }).returning({ id: registrationTokens.id }).get();
+}
+
+
+export async function deleteRegistrationToken(db: DrizzleD1Database, token: string): Promise<void> {
+    await db
+        .delete(registrationTokens)
+        .where(eq(registrationTokens.token, token))
+        .run();
 }
