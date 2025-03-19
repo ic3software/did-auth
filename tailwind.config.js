@@ -4,9 +4,7 @@ export default {
 	darkMode: 'class',
 	theme: {
 		extend: {
-			colors: {
-				// You can add custom colors here if needed
-			}
+			colors: {}
 		}
 	},
 	plugins: []

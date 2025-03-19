@@ -1,24 +1,4 @@
-// src/lib/crypto.ts
-
-/**
- * Generates an RSA key pair using Web Crypto API.
- * The private key is marked as non-extractable, ensuring it cannot be exported.
- */
-export async function generateKeyPair(): Promise<CryptoKeyPair> {
-	const keyPair = await window.crypto.subtle.generateKey(
-		{
-			name: 'RSASSA-PKCS1-v1_5',
-			modulusLength: 2048,
-			publicExponent: new Uint8Array([1, 0, 1]),
-			hash: { name: 'SHA-256' }
-		},
-		false,
-		['sign', 'verify']
-	);
-
-	console.log('Key pair generated:', keyPair);
-	return keyPair;
-}
+import * as uint8arrays from 'uint8arrays';
 
 /**
  * Opens IndexedDB and ensures the object store exists.
@@ -40,20 +20,36 @@ function openDatabase(): Promise<IDBDatabase> {
 }
 
 /**
- * Stores the generated keys securely in IndexedDB.
- * The private key is stored but remains non-extractable.
+ * Generates an Ed25519 key pair.
+ */
+export async function generateKeyPair(): Promise<CryptoKeyPair> {
+	const keyPair = (await crypto.subtle.generateKey(
+		{
+			name: 'Ed25519'
+		},
+		false,
+		['sign', 'verify']
+	)) as CryptoKeyPair;
+
+	return keyPair;
+}
+
+/**
+ * Stores the generated key pair securely in IndexedDB.
  */
 export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Promise<void> {
 	const db = await openDatabase();
 	const transaction = db.transaction('keys', 'readwrite');
 	const store = transaction.objectStore('keys');
 
+	// Store the public key
 	store.put(publicKey, 'publicKey');
+
+	// Store the private key
 	store.put(privateKey, 'privateKey');
 
 	return new Promise((resolve, reject) => {
 		transaction.oncomplete = () => {
-			console.log('Keys successfully stored in IndexedDB.');
 			resolve();
 		};
 		transaction.onerror = () => reject(transaction.error);
@@ -62,7 +58,6 @@ export async function storeKeys(publicKey: CryptoKey, privateKey: CryptoKey): Pr
 
 /**
  * Retrieves a stored key (either public or private) from IndexedDB.
- * Ensures the object store exists before accessing.
  */
 export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<CryptoKey | null> {
 	const db = await openDatabase();
@@ -77,51 +72,35 @@ export async function getKey(keyName: 'publicKey' | 'privateKey'): Promise<Crypt
 }
 
 /**
- * Signs data using the stored private key.
- * The private key remains protected and cannot be extracted.
+ * Signs a request payload using the provided private key with Ed25519.
  */
-export async function signData(data: string): Promise<Uint8Array> {
-	const privateKey = await getKey('privateKey');
-	if (!privateKey) throw new Error('Private key not found in IndexedDB.');
-
-	console.log('privateKey', privateKey);
-
-	const encoder = new TextEncoder();
-	const dataBuffer = encoder.encode(data);
-
-	const signature = await window.crypto.subtle.sign(
-		{ name: 'RSASSA-PKCS1-v1_5' },
-		privateKey,
-		dataBuffer
-	);
-
-	return new Uint8Array(signature);
+export async function signRequest(payload: unknown, privateKey: CryptoKey): Promise<string> {
+	try {
+		// For empty payloads, use an empty object string
+		const data = payload === undefined || payload === null ? '{}' : JSON.stringify(payload);
+		const signature = await crypto.subtle.sign(
+			{
+				name: 'Ed25519'
+			},
+			privateKey,
+			new TextEncoder().encode(data)
+		);
+		return uint8arrays.toString(new Uint8Array(signature), 'base58btc');
+	} catch (error) {
+		console.error('Error signing request:', error);
+		throw new Error('Failed to sign request');
+	}
 }
 
 /**
- * Verifies a signature using the stored public key.
+ * Exports the public key as a base58btc string.
  */
-export async function verifySignature(
-	data: string,
-	signature: Uint8Array,
-	exportedPublicKeyString: string
-): Promise<boolean> {
-	const exportedKeyBuffer = Uint8Array.from(atob(exportedPublicKeyString), (c) => c.charCodeAt(0));
-	const publicKey = await window.crypto.subtle.importKey(
-		'spki',
-		exportedKeyBuffer,
-		{ name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-		true,
-		['verify']
-	);
-
-	const encoder = new TextEncoder();
-	const dataBuffer = encoder.encode(data);
-
-	return await window.crypto.subtle.verify(
-		{ name: 'RSASSA-PKCS1-v1_5' },
-		publicKey,
-		signature,
-		dataBuffer
-	);
+export async function exportPublicKey(publicKey: CryptoKey): Promise<string> {
+	try {
+		const exported = await crypto.subtle.exportKey('raw', publicKey);
+		return uint8arrays.toString(new Uint8Array(exported), 'base58btc');
+	} catch (error) {
+		console.error('Error exporting public key:', error);
+		throw new Error('Failed to export public key');
+	}
 }

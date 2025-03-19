@@ -1,98 +1,182 @@
 <script lang="ts">
-	import { generateKeyPair, storeKeys, getKey, signData, verifySignature } from '$lib/crypto';
+	import { page } from '$app/state';
+	import { fetchEmails, fetchKeys, fetchUsers } from '$lib/api';
+	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
-	// Define the CryptoKeyPair interface if it's not available
-	interface CryptoKeyPair {
-		privateKey: CryptoKey;
-		publicKey: CryptoKey;
+	interface CustomPageState extends Page {
+		state: {
+			message?: string;
+		};
 	}
 
-	let keypair = $state<CryptoKeyPair | null>(null);
-	let message = 'Hello, secure world!';
-	let signature: Uint8Array | null = $state(null);
-	let signatureVerificationResult: boolean | null = $state(null);
-	let keyExists: boolean = $state(false);
-	let publicKeyString: string | null = $state(null);
+	let typedPage = page as unknown as CustomPageState;
 
-	async function checkStoredKey() {
-		let storedKey = await getKey('privateKey');
-		keyExists = !!storedKey;
-		if (keyExists) {
-			keypair = {
-				publicKey: (await getKey('publicKey')) as CryptoKey,
-				privateKey: storedKey as CryptoKey
-			};
+	let email = $state('');
+	let emailList = $state<string[]>([]);
+	let publicKeyList = $state<string[]>([]);
+	let errorMessage = $state('');
+	let userNotFound = $state(false);
+	let userName = $state('');
+	let infoMessage = $derived(
+		userNotFound
+			? 'Click Register to create an account.'
+			: emailList.length === 0
+				? 'No email found. Add your email above.'
+				: ''
+	);
+
+	async function addEmail() {
+		if (!email) return;
+		try {
+			const { success, error } = await fetchEmails('POST', { email });
+			if (success) {
+				emailList = [...emailList, email];
+				email = '';
+				errorMessage = '';
+			} else {
+				errorMessage = error || 'Failed to add email.';
+				console.error(errorMessage);
+			}
+		} catch (error) {
+			errorMessage = 'An unexpected error occurred. Error: ' + error;
+			console.error('Error adding email:', error);
 		}
 	}
 
-	async function generateKeypair() {
-		if (!keyExists) {
-			keypair = await generateKeyPair();
-			await storeKeys(keypair.publicKey, keypair.privateKey);
-			keyExists = true;
+	async function removeEmail(index: number) {
+		try {
+			const emailToRemove = emailList[index];
+			const { success, error } = await fetchEmails('DELETE', { email: emailToRemove });
+			if (success) {
+				emailList = emailList.filter((_, i) => i !== index);
+				errorMessage = '';
+			} else {
+				errorMessage = error || 'Failed to remove email.';
+				console.error(errorMessage);
+			}
+		} catch (error) {
+			errorMessage = 'An unexpected error occurred while removing email. Error: ' + error;
+			console.error('Error removing email:', error);
 		}
 	}
 
-	async function handleSignData() {
-		signature = await signData(message);
-		console.log('signature', signature);
+	onMount(async () => {
+		try {
+			const userResult = await fetchUsers('GET');
 
-		if (keypair && keypair.publicKey) {
-			const exportedKey = await window.crypto.subtle.exportKey('spki', keypair.publicKey);
-			publicKeyString = btoa(String.fromCharCode(...new Uint8Array(exportedKey)));
-			console.log('publicKey', publicKeyString);
+			if (userResult.success) {
+				userName = userResult.data?.name || '';
+				userNotFound = false;
+
+				const [emailsResult, keysResult] = await Promise.all([
+					fetchEmails('GET'),
+					fetchKeys('GET')
+				]);
+
+				if (emailsResult.success) {
+					emailList = emailsResult.data?.map((item: { email: string }) => item.email) || [];
+				} else {
+					errorMessage = 'Failed to fetch email: ' + emailsResult.error;
+					console.error(errorMessage);
+				}
+
+				if (keysResult.success) {
+					publicKeyList =
+						keysResult.data?.map((item: { publicKey: string }) => item.publicKey) || [];
+				} else {
+					errorMessage = 'Failed to fetch keys: ' + keysResult.error;
+					console.error(errorMessage);
+				}
+			} else if (userResult.error === 'User not found') {
+				errorMessage = 'User not found';
+				userNotFound = true;
+			} else {
+				console.error('Error fetching user:', userResult.error);
+				errorMessage = 'Failed to fetch user name: ' + userResult.error;
+			}
+		} catch (error) {
+			console.error('Error in onMount:', error);
+			errorMessage = 'An unexpected error occurred. Error: ' + error;
 		}
-	}
-
-	async function handleVerifySignature() {
-		if (!signature) {
-			alert('No signature available for verification.');
-			return;
-		}
-		if (!publicKeyString) {
-			alert('No public key available for verification.');
-			return;
-		}
-
-		signatureVerificationResult = await verifySignature(message, signature, publicKeyString);
-	}
-
-	onMount(() => {
-		checkStoredKey();
 	});
 </script>
 
 <div class="container mx-auto px-4 py-4 break-words">
-	<h1 class="text-2xl font-bold dark:text-white">Web Crypto API + IndexedDB</h1>
-	{#if keyExists}
-		<p class="font-bold text-green-500">Key pair already exists.</p>
-	{:else}
-		<button
-			onclick={generateKeypair}
-			class="cursor-pointer rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700 disabled:opacity-50"
-			>Generate Keypair</button
+	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+		<code class="font-mono">did:key</code>
+		<span class="font-serif">Authentication <em>(Look Ma, No Passwords!)</em></span>
+	</h1>
+	{#if typedPage?.state?.message}
+		<div
+			class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
 		>
+			{typedPage.state.message}
+		</div>
 	{/if}
-	<p class="dark:text-gray-200"><strong>Message to sign:</strong> {message}</p>
-	<button
-		onclick={handleSignData}
-		class="cursor-pointer rounded bg-purple-500 px-4 py-2 font-bold text-white hover:bg-purple-700"
-		>Sign Message</button
-	>
-	<p class="dark:text-gray-200">
-		<strong>Signature:</strong> <span class="break-words">{signature?.toString()}</span>
-	</p>
-	<p class="dark:text-gray-200">
-		<strong>Public Key:</strong> <span class="break-words">{publicKeyString}</span>
-	</p>
-	<button
-		onclick={handleVerifySignature}
-		class="cursor-pointer rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
-		>Verify Signature</button
-	>
-	<p class="dark:text-gray-200">
-		<strong>Verification Result:</strong>
-		{signatureVerificationResult ? 'Valid ✅' : 'Invalid ❌'}
-	</p>
+	{#if !userName}
+		<div class="mt-4">
+			<a
+				href="/register"
+				class="mt-8 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+			>
+				Register
+			</a>
+		</div>
+	{:else}
+		<div class="mt-8">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
+		</div>
+		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
+			{publicKeyList.length > 1 ? 'Your Public Keys' : 'Your Public Key'}
+		</h2>
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+			<div class="flex items-center justify-between">
+				<ul class="mt-2 list-inside list-decimal">
+					{#each publicKeyList as publicKey}
+						<li class="mb-2 break-all">{publicKey}</li>
+					{/each}
+				</ul>
+			</div>
+		</div>
+		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+			{#if emailList.length === 0}
+				<div class="flex items-center justify-between">
+					<input
+						type="email"
+						bind:value={email}
+						class="rounded-md border p-2 text-gray-900 sm:w-md dark:bg-gray-700 dark:text-white"
+						placeholder="Enter your email"
+					/>
+					<button
+						class="rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
+						onclick={addEmail}
+					>
+						Add Email
+					</button>
+				</div>
+			{:else}
+				<ul>
+					{#each emailList as email, index}
+						<li class="flex items-center justify-between text-gray-900 dark:text-white">
+							<span>{email}</span>
+							<button
+								class="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+								onclick={() => removeEmail(index)}
+							>
+								Delete
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+		{#if errorMessage}
+			<div class="mt-2 text-red-500">{errorMessage}</div>
+		{/if}
+		{#if infoMessage}
+			<div class="mt-2 text-blue-500">{infoMessage}</div>
+		{/if}
+	{/if}
 </div>

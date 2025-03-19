@@ -1,0 +1,15 @@
+name = "did-auth"
+compatibility_date = "2025-03-19"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "did-auth-preview"
+database_id = "03a36e46-bc90-4109-8581-b31719d3dc27"
+migrations_dir = "drizzle"
+
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "did-auth"
+database_id = "aa853f2b-3636-4aa4-844e-e6a084f0ac5d"
+migrations_dir = "drizzle"
