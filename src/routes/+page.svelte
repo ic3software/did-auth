@@ -22,15 +22,7 @@
 	let emailList = $state<string[]>([]);
 	let publicKeyList = $state<string[]>([]);
 	let errorMessage = $state('');
-	let userNotFound = $state(false);
 	let userName = $state('');
-	let infoMessage = $derived(
-		userNotFound
-			? 'Click Register to create an account.'
-			: emailList.length === 0
-				? 'No email found. Add your email above.'
-				: ''
-	);
 	let tokens = $state<RegistrationToken[]>([]);
 	let isGeneratingLink = $state(false);
 	let tokenInfoMessage = $state('');
@@ -130,7 +122,6 @@
 
 			if (userResult.success) {
 				userName = userResult.data?.name || '';
-				userNotFound = false;
 
 				const [emailsResult, keysResult, tokensResult] = await Promise.all([
 					fetchEmails('GET'),
@@ -161,8 +152,7 @@
 					console.error(errorMessage);
 				}
 			} else if (userResult.error === 'User not found') {
-				errorMessage = 'User not found';
-				userNotFound = true;
+				errorMessage = '';
 			} else {
 				console.error('Error fetching user:', userResult.error);
 				errorMessage = 'Failed to fetch user name: ' + userResult.error;
@@ -183,40 +173,54 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-4 break-words">
+<div class="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
+	<div class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+
+<!-- <div class="container mx-auto px-4 py-4 break-words"> -->
 	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
 		<code class="font-mono">did:key</code> Authentication
 	</h1>
 	<div class="font-serif text-lg"><em>(Look Ma, No Passwords!)</em></div>
 	{#if typedPage?.state?.message}
 		<div
-			class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
+			class="my-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
 		>
 			{typedPage.state.message}
 		</div>
 	{/if}
-	{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
+	{#if errorMessage}
 		<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
-			Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how to
-			enable it:
-			<ol class="mt-2 list-decimal pl-4">
-				<li>
-					Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address
-					bar and press Enter.
-				</li>
-				<li>
-					In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type
-					"Experimental Web Platform features".
-				</li>
-				<li>Find the "Experimental Web Platform features" flag.</li>
-				<li>Click the dropdown menu next to it and select "Enabled".</li>
-				<li>After enabling the flag, you will be prompted to restart the browser.</li>
-				<li>Click "Relaunch" to restart and try loading this page again.</li>
-			</ol>
+			{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
+				Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how to
+				enable it:
+				<ol class="list-decimal pl-4">
+					<li>
+						Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address
+						bar and press Enter.
+					</li>
+					<li>
+						In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type
+						"Experimental Web Platform features".
+					</li>
+					<li>Find the "Experimental Web Platform features" flag.</li>
+					<li>Click the dropdown menu next to it and select "Enabled".</li>
+					<li>After enabling the flag, you will be prompted to restart the browser.</li>
+					<li>Click "Relaunch" to restart and try loading this page again.</li>
+				</ol>
+			{:else}
+				{errorMessage}
+			{/if}
 		</div>
 	{/if}
 	{#if !userName}
+		{#if !errorMessage.includes('Algorithm: Unrecognized name')}
+		<div class="mt-8">
+			When you loaded this page, a public/private key pair was generated for you and stored safely in your browser.
+			</div>
 		<div class="mt-4">
+			Click the button below to create an account on this site.
+			</div>
+		<div class="my-4">
 			<a
 				href="/register"
 				class="mt-8 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
@@ -224,6 +228,7 @@
 				Register
 			</a>
 		</div>
+		{/if}
 	{:else}
 		<div class="mt-8">
 			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
@@ -231,7 +236,7 @@
 		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
 			{publicKeyList.length > 1 ? 'Your Public Keys' : 'Your Public Key'}
 		</h2>
-		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 			<div class="flex items-center justify-between">
 				<ul class="mt-2 list-inside list-decimal">
 					{#each publicKeyList as publicKey}
@@ -241,13 +246,13 @@
 			</div>
 		</div>
 		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
-		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 			{#if emailList.length === 0}
 				<div class="flex flex-col items-center justify-between gap-2 sm:flex-row sm:gap-0">
 					<input
 						type="email"
 						bind:value={email}
-						class="w-full rounded-md border p-2 text-gray-900 sm:w-3/4 dark:bg-gray-700 dark:text-white"
+						class="w-full rounded-md border p-2 text-gray-900 sm:w-3/4 dark:bg-gray-600 dark:text-white"
 						placeholder="Enter your email"
 					/>
 					<button
@@ -273,30 +278,24 @@
 				</ul>
 			{/if}
 		</div>
-		{#if errorMessage}
-			<div class="mt-2 text-red-500">{errorMessage}</div>
-		{/if}
-		{#if infoMessage}
-			<div class="mt-2 text-blue-500">{infoMessage}</div>
-		{/if}
 		<div class="mt-8">
 			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
 				{tokens.length > 1 ? 'Your Registration Tokens' : 'Your Registration Token'}
 			</h2>
-			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 				{#if tokens.length === 0}
 					<p class="text-left text-gray-900 dark:text-white">No token available.</p>
 				{:else}
-					<ul class="mt-4">
+					<ul class="mt-2">
 						{#each tokens as { token, expiresIn }, index}
-							<li class="mb-4 flex flex-col break-all text-gray-900 dark:text-white">
+							<li class="flex flex-col break-all text-gray-900 dark:text-white">
 								<div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_auto]">
 									<div>
-										<div class="flex min-w-0 items-center">
+										<div class="flex items-center">
 											<span class="whitespace-nowrap">Token:</span>
 											<span class="ml-2 truncate">{token}</span>
 										</div>
-										<div class="flex min-w-0 items-center">
+										<div class="flex items-center">
 											<span class="whitespace-nowrap">Expires in:</span>
 											{#if expiresIn > 0}
 												<span class="ml-2 whitespace-nowrap">{expiresIn} seconds</span>
@@ -325,7 +324,7 @@
 									</div>
 								</div>
 								{#if index < tokens.length - 1}
-									<hr class="mt-4 border-t border-gray-300 dark:border-gray-700" />
+									<hr class="my-4 border-t border-gray-300 dark:border-gray-600" />
 								{/if}
 							</li>
 						{/each}
@@ -349,4 +348,5 @@
 			{/if}
 		</div>
 	{/if}
-</div>
+<!-- </div> -->
+</div></div>
