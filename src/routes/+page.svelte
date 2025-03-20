@@ -185,9 +185,9 @@
 
 <div class="container mx-auto px-4 py-4 break-words">
 	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-		<code class="font-mono">did:key</code>
-		<span class="font-serif">Authentication <em>(Look Ma, No Passwords!)</em></span>
+		<code class="font-mono">did:key</code> Authentication
 	</h1>
+	<div class="font-serif text-lg"><em>(Look Ma, No Passwords!)</em></div>
 	{#if typedPage?.state?.message}
 		<div
 			class="mt-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
@@ -243,15 +243,15 @@
 		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
 		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
 			{#if emailList.length === 0}
-				<div class="flex items-center justify-between">
+				<div class="flex flex-col items-center justify-between gap-2 sm:flex-row sm:gap-0">
 					<input
 						type="email"
 						bind:value={email}
-						class="rounded-md border p-2 text-gray-900 sm:w-md dark:bg-gray-700 dark:text-white"
+						class="w-full rounded-md border p-2 text-gray-900 sm:w-3/4 dark:bg-gray-700 dark:text-white"
 						placeholder="Enter your email"
 					/>
 					<button
-						class="rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
+						class="w-full rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
 						onclick={addEmail}
 					>
 						Add Email
@@ -280,12 +280,66 @@
 			<div class="mt-2 text-blue-500">{infoMessage}</div>
 		{/if}
 		<div class="mt-8">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+				{tokens.length > 1 ? 'Your Registration Tokens' : 'Your Registration Token'}
+			</h2>
+			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+				{#if tokens.length === 0}
+					<p class="text-left text-gray-900 dark:text-white">No token available.</p>
+				{:else}
+					<ul class="mt-4">
+						{#each tokens as { token, expiresIn }, index}
+							<li class="mb-4 flex flex-col break-all text-gray-900 dark:text-white">
+								<div class="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_auto]">
+									<div>
+										<div class="flex min-w-0 items-center">
+											<span class="whitespace-nowrap">Token:</span>
+											<span class="ml-2 truncate">{token}</span>
+										</div>
+										<div class="flex min-w-0 items-center">
+											<span class="whitespace-nowrap">Expires in:</span>
+											{#if expiresIn > 0}
+												<span class="ml-2 whitespace-nowrap">{expiresIn} seconds</span>
+											{:else}
+												<span class="ml-2 whitespace-nowrap text-red-500">Expired</span>
+											{/if}
+										</div>
+									</div>
+									<div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
+										{#if expiresIn > 0}
+											<button
+												class="w-full rounded-md bg-green-500 px-4 py-2 whitespace-nowrap text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
+												onclick={() => copyLinkToClipboard(token)}
+											>
+												Copy Link
+											</button>
+										{:else}
+											<div></div>
+										{/if}
+										<button
+											class="w-full rounded-md bg-red-500 px-4 py-2 whitespace-nowrap text-white hover:bg-red-700 sm:w-auto dark:bg-red-600 dark:hover:bg-red-800"
+											onclick={() => deleteToken(token)}
+										>
+											Delete Token
+										</button>
+									</div>
+								</div>
+								{#if index < tokens.length - 1}
+									<hr class="mt-4 border-t border-gray-300 dark:border-gray-700" />
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
+		</div>
+		<div class="mt-4">
 			<button
 				class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 				onclick={generateLink}
 				disabled={isGeneratingLink}
 			>
-				{isGeneratingLink ? 'Generating...' : 'Generate Registration Link'}
+				{isGeneratingLink ? 'Generating...' : 'Generate Registration Token'}
 			</button>
 			{#if tokenInfoMessage}
 				<div class="mt-2 text-green-500">{tokenInfoMessage}</div>
@@ -293,50 +347,6 @@
 			{#if tokenErrorMessage}
 				<div class="mt-2 text-red-500">{tokenErrorMessage}</div>
 			{/if}
-		</div>
-		<div class="mt-8">
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Your Tokens</h2>
-			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
-				{#if tokens.length === 0}
-					<p class="text-left text-gray-900 dark:text-white">No tokens available.</p>
-				{:else}
-					<ul>
-						{#each tokens as { token, expiresIn }, index}
-							<li class="mb-4 flex flex-col break-all text-gray-900 dark:text-white">
-								<div class="flex items-start">
-									<span>Token:</span>
-									<span class="ml-2">{token}</span>
-								</div>
-								<div class="mt-1 flex items-start">
-									<span>Expires in:</span>
-									{#if expiresIn > 0}
-										<span class="ml-2">{expiresIn} seconds</span>
-									{:else}
-										<span class="ml-2 text-red-500">Expired</span>
-									{/if}
-								</div>
-								{#if expiresIn > 0}
-									<button
-										class="mt-2 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
-										onclick={() => copyLinkToClipboard(token)}
-									>
-										Copy Link
-									</button>
-								{/if}
-								<button
-									class="mt-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
-									onclick={() => deleteToken(token)}
-								>
-									Delete Token
-								</button>
-								{#if index < tokens.length - 1}
-									<hr class="my-4 border-t border-gray-300 dark:border-gray-700" />
-								{/if}
-							</li>
-						{/each}
-					</ul>
-				{/if}
-			</div>
 		</div>
 	{/if}
 </div>
