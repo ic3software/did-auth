@@ -101,7 +101,7 @@
 		try {
 			const { success, error } = await fetchTokens('DELETE', { token });
 			if (success) {
-				tokens = tokens.filter(t => t.token !== token);
+				tokens = tokens.filter((t) => t.token !== token);
 				tokenInfoMessage = 'Token has been deleted.';
 			} else {
 				tokenErrorMessage = error || 'Failed to delete token.';
@@ -170,7 +170,7 @@
 
 	function startTokenCountdown() {
 		setInterval(() => {
-			tokens = tokens.map(token => {
+			tokens = tokens.map((token) => {
 				const expiresIn = Math.floor((new Date(token.expiresAt).getTime() - Date.now()) / 1000);
 				return { ...token, expiresIn };
 			});
@@ -302,7 +302,7 @@
 									<span>Token:</span>
 									<span class="ml-2">{token}</span>
 								</div>
-								<div class="flex items-start mt-1">
+								<div class="mt-1 flex items-start">
 									<span>Expires in:</span>
 									{#if expiresIn > 0}
 										<span class="ml-2">{expiresIn} seconds</span>

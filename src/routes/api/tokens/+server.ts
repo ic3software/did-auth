@@ -2,7 +2,11 @@ import { isValidBase58btc } from '$lib/base58btcUtils';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
 import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
-import { getTokensByUserId, insertRegistrationToken, deleteRegistrationToken } from '$lib/server/models/registrationToken';
+import {
+	deleteRegistrationToken,
+	getTokensByUserId,
+	insertRegistrationToken
+} from '$lib/server/models/registrationToken';
 import { generateRegistrationToken } from '$lib/server/utils';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -51,7 +55,6 @@ export const GET: RequestHandler = async ({
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };
-
 
 export const POST: RequestHandler = async ({
 	platform = { env: { DB: {} as D1Database } },
