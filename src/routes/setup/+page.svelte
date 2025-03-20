@@ -26,8 +26,9 @@
 			} else {
 				errorMessage = error || 'An error occurred';
 			}
-		} catch (err) {
-			errorMessage = 'Key generation failed';
+		} catch (error) {
+			console.error('Error posting key:', error);
+			errorMessage = 'Key linking failed';
 		}
 	});
 </script>
