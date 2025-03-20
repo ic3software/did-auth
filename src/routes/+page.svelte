@@ -74,6 +74,8 @@
 	async function generateLink() {
 		isGeneratingLink = true;
 		tokenInfoMessage = '';
+		tokenErrorMessage = '';
+
 		try {
 			const { data, success } = await fetchTokens('POST');
 			if (success) {
@@ -98,6 +100,9 @@
 	}
 
 	async function deleteToken(token: string) {
+		tokenInfoMessage = '';
+		tokenErrorMessage = '';
+
 		try {
 			const { success, error } = await fetchTokens('DELETE', { token });
 			if (success) {
