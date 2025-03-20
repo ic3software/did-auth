@@ -10,6 +10,12 @@
 		};
 	}
 
+	interface RegistrationToken {
+		token: string;
+		expiresAt: Date;
+		expiresIn: number;
+	}
+
 	let typedPage = page as unknown as CustomPageState;
 
 	let email = $state('');
@@ -25,8 +31,10 @@
 				? 'No email found. Add your email above.'
 				: ''
 	);
-	let token = $state('');
-	let link = $state('');
+	let tokens = $state<RegistrationToken[]>([]);
+	let isGeneratingLink = $state(false);
+	let tokenInfoMessage = $state('');
+	let tokenErrorMessage = $state('');
 
 	async function addEmail() {
 		if (!email) return;
@@ -64,15 +72,33 @@
 	}
 
 	async function generateLink() {
-		const { data, success } = await fetchTokens('POST');
-		if (success) {
-			token = data.token;
-			link = `${window.location.origin}/setup?token=${token}`;
+		isGeneratingLink = true;
+		tokenInfoMessage = '';
+		try {
+			const { data, success } = await fetchTokens('POST');
+			if (success) {
+				tokens = [
+					...tokens,
+					{
+						token: data.token,
+						expiresAt: new Date(data.expires_at),
+						expiresIn: Math.floor((new Date(data.expires_at).getTime() - Date.now()) / 1000)
+					}
+				];
+				tokenInfoMessage = 'Token has been generated.';
+			} else {
+				tokenErrorMessage = 'Failed to generate token.';
+			}
+		} catch (error) {
+			tokenErrorMessage = 'An unexpected error occurred. Error: ' + error;
+			console.error('Error generating token:', error);
+		} finally {
+			isGeneratingLink = false;
 		}
 	}
 
-	function copyToClipboard() {
-		navigator.clipboard.writeText(link).then(() => {
+	function copyLinkToClipboard(token: string) {
+		navigator.clipboard.writeText(`${window.location.origin}/setup?token=${token}`).then(() => {
 			alert('Link copied!');
 		});
 	}
@@ -85,9 +111,10 @@
 				userName = userResult.data?.name || '';
 				userNotFound = false;
 
-				const [emailsResult, keysResult] = await Promise.all([
+				const [emailsResult, keysResult, tokensResult] = await Promise.all([
 					fetchEmails('GET'),
-					fetchKeys('GET')
+					fetchKeys('GET'),
+					fetchTokens('GET')
 				]);
 
 				if (emailsResult.success) {
@@ -104,6 +131,14 @@
 					errorMessage = 'Failed to fetch keys: ' + keysResult.error;
 					console.error(errorMessage);
 				}
+
+				if (tokensResult.success) {
+					tokens = tokensResult.data?.tokens || [];
+					startTokenCountdown();
+				} else {
+					errorMessage = 'Failed to fetch tokens: ' + tokensResult.error;
+					console.error(errorMessage);
+				}
 			} else if (userResult.error === 'User not found') {
 				errorMessage = 'User not found';
 				userNotFound = true;
@@ -116,6 +151,15 @@
 			errorMessage = 'An unexpected error occurred. Error: ' + error;
 		}
 	});
+
+	function startTokenCountdown() {
+		setInterval(() => {
+			tokens = tokens.map(token => {
+				const expiresIn = Math.floor((new Date(token.expiresAt).getTime() - Date.now()) / 1000);
+				return { ...token, expiresIn };
+			});
+		}, 1000);
+	}
 </script>
 
 <div class="container mx-auto px-4 py-4 break-words">
@@ -218,18 +262,54 @@
 			<button
 				class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 				onclick={generateLink}
+				disabled={isGeneratingLink}
 			>
-				Generate Registration Link
+				{isGeneratingLink ? 'Generating...' : 'Generate Registration Link'}
 			</button>
-			{#if link}
-				<p class="mt-4 text-gray-900 dark:text-white">Your Link: {link}</p>
-				<button
-					class="mt-2 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
-					onclick={copyToClipboard}
-				>
-					Copy Link
-				</button>
+			{#if tokenInfoMessage}
+				<div class="mt-2 text-green-500">{tokenInfoMessage}</div>
 			{/if}
+			{#if tokenErrorMessage}
+				<div class="mt-2 text-red-500">{tokenErrorMessage}</div>
+			{/if}
+		</div>
+		<div class="mt-8">
+			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Your Tokens</h2>
+			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-800">
+				{#if tokens.length === 0}
+					<p class="text-left text-gray-900 dark:text-white">No tokens available.</p>
+				{:else}
+					<ul>
+						{#each tokens as { token, expiresIn }, index}
+							<li class="mb-4 flex flex-col break-all text-gray-900 dark:text-white">
+								<div class="flex items-start">
+									<span>Token:</span>
+									<span class="ml-2">{token}</span>
+								</div>
+								<div class="flex items-start mt-1">
+									<span>Expires in:</span>
+									{#if expiresIn > 0}
+										<span class="ml-2">{expiresIn} seconds</span>
+									{:else}
+										<span class="ml-2 text-red-500">Expired</span>
+									{/if}
+								</div>
+								{#if expiresIn > 0}
+									<button
+										class="mt-2 rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-800"
+										onclick={() => copyLinkToClipboard(token)}
+									>
+										Copy Link
+									</button>
+								{/if}
+								{#if index < tokens.length - 1}
+									<hr class="my-4 border-t border-gray-300 dark:border-gray-700" />
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
 		</div>
 	{/if}
 </div>

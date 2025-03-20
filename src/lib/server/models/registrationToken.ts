@@ -22,6 +22,19 @@ export async function isTokenValidAndGetUserId(
 	return result ? result.userId : null;
 }
 
+export async function getTokensByUserId(
+	db: DrizzleD1Database,
+	userId: number
+): Promise<{ token: string; expiresAt: Date }[]> {
+	const result = await db
+		.select({ token: registrationTokens.token, expiresAt: registrationTokens.expiresAt })
+		.from(registrationTokens)
+		.where(eq(registrationTokens.userId, userId))
+		.all();
+
+	return result;
+}
+
 export async function insertRegistrationToken(
 	db: DrizzleD1Database,
 	userId: number,
@@ -30,7 +43,7 @@ export async function insertRegistrationToken(
 	return await db
 		.insert(registrationTokens)
 		.values({ token, userId, expiresAt: sql`(strftime('%s', 'now') + 300)` })
-		.returning({ id: registrationTokens.id })
+		.returning({ id: registrationTokens.id, expiresAt: registrationTokens.expiresAt })
 		.get();
 }
 
