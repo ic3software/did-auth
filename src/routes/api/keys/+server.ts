@@ -97,6 +97,12 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Invalid or expired token', success: false }, { status: 404 });
 		}
 
+		const existingPublicKey = await getUserIdByPublicKey(db, xPublicKey);
+
+		if (existingPublicKey) {
+			return json({ error: 'Public key already exists', success: false }, { status: 409 });
+		}
+
 		await insertPublicKey(db, userId, xPublicKey);
 		await deleteRegistrationToken(db, userId, token);
 

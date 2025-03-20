@@ -146,7 +146,7 @@ export const DELETE: RequestHandler = async ({
 		const deleteResult = await deleteRegistrationToken(db, userId, token);
 
 		if (!deleteResult) {
-			return json({ error: 'Failed to delete token', success: false }, { status: 500 });
+			return json({ error: 'Token has already been deleted', success: false }, { status: 404 });
 		}
 
 		return json({ success: true }, { status: 200 });
