@@ -20,7 +20,7 @@
 
 			if (success) {
 				goto('/', {
-					state: { message: 'You have already signed in' },
+					state: { message: 'You are now signed in to your account from this device.' },
 					replaceState: true
 				});
 			} else {
@@ -36,7 +36,9 @@
 <div class="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
 	<div class="w-full max-w-md rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
 		{#if errorMessage}
-			<p class="mb-4 text-sm text-red-500 dark:text-red-400">{errorMessage}</p>
+			<div class="mb-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
+				{errorMessage}
+			</div>
 		{/if}
 		<a
 			class="block w-full rounded-md bg-blue-500 px-4 py-2 text-center text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"

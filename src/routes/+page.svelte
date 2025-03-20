@@ -79,7 +79,8 @@
 					},
 					...tokens
 				];
-				tokenInfoMessage = 'Token has been generated.';
+				tokenInfoMessage =
+					'A token was generated. Copy the link and open it in a browser on another device to access your account.';
 			} else {
 				tokenErrorMessage = 'Failed to generate token.';
 			}
@@ -99,7 +100,7 @@
 			const { success, error } = await fetchTokens('DELETE', { token });
 			if (success) {
 				tokens = tokens.filter((t) => t.token !== token);
-				tokenInfoMessage = 'Token has been deleted.';
+				tokenInfoMessage = 'The access token has been deleted.';
 			} else {
 				tokenErrorMessage = error || 'Failed to delete token.';
 				console.error(tokenErrorMessage);
@@ -111,7 +112,7 @@
 	}
 
 	function copyLinkToClipboard(token: string) {
-		navigator.clipboard.writeText(`${window.location.origin}/setup?token=${token}`).then(() => {
+		navigator.clipboard.writeText(`${window.location.origin}/access?token=${token}`).then(() => {
 			alert('Link copied!');
 		});
 	}
@@ -173,115 +174,94 @@
 	}
 </script>
 
-<div class="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
-	<div class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-
-<!-- <div class="container mx-auto px-4 py-4 break-words"> -->
-	<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-		<code class="font-mono">did:key</code> Authentication
-	</h1>
-	<div class="font-serif text-lg"><em>(Look Ma, No Passwords!)</em></div>
-	{#if typedPage?.state?.message}
-		<div
-			class="my-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
-		>
-			{typedPage.state.message}
-		</div>
-	{/if}
-	{#if errorMessage}
-		<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
-			{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
-				Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how to
-				enable it:
-				<ol class="list-decimal pl-4">
-					<li>
-						Open a new browser window and type <code class="font-mono">chrome://flags</code> in the address
-						bar and press Enter.
-					</li>
-					<li>
-						In the search box at the top of the <code class="font-mono">chrome://flags</code> page, type
-						"Experimental Web Platform features".
-					</li>
-					<li>Find the "Experimental Web Platform features" flag.</li>
-					<li>Click the dropdown menu next to it and select "Enabled".</li>
-					<li>After enabling the flag, you will be prompted to restart the browser.</li>
-					<li>Click "Relaunch" to restart and try loading this page again.</li>
-				</ol>
-			{:else}
-				{errorMessage}
-			{/if}
-		</div>
-	{/if}
-	{#if !userName}
-		{#if !errorMessage.includes('Algorithm: Unrecognized name')}
-		<div class="mt-8">
-			When you loaded this page, a public/private key pair was generated for you and stored safely in your browser.
-			</div>
-		<div class="mt-4">
-			Click the button below to create an account on this site.
-			</div>
-		<div class="my-4">
-			<a
-				href="/register"
-				class="mt-8 rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+<div class="flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+	<div class="mt-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+		<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+			<code class="font-mono">did:key</code> Authentication
+		</h1>
+		<div class="font-serif text-lg"><em>(Look Ma, No Passwords!)</em></div>
+		{#if typedPage?.state?.message}
+			<div
+				class="my-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
 			>
-				Register
-			</a>
-		</div>
-		{/if}
-	{:else}
-		<div class="mt-8">
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
-		</div>
-		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
-			{publicKeyList.length > 1 ? 'Your Public Keys' : 'Your Public Key'}
-		</h2>
-		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
-			<div class="flex items-center justify-between">
-				<ul class="mt-2 list-inside list-decimal">
-					{#each publicKeyList as publicKey}
-						<li class="mb-2 break-all">{publicKey}</li>
-					{/each}
-				</ul>
+				{typedPage.state.message}
 			</div>
-		</div>
-		<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
-		<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
-			{#if emailList.length === 0}
-				<div class="flex flex-col items-center justify-between gap-2 sm:flex-row sm:gap-0">
-					<input
-						type="email"
-						bind:value={email}
-						class="w-full rounded-md border p-2 text-gray-900 sm:w-3/4 dark:bg-gray-600 dark:text-white"
-						placeholder="Enter your email"
-					/>
-					<button
-						class="w-full rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
-						onclick={addEmail}
-					>
-						Add Email
-					</button>
-				</div>
-			{:else}
-				<ul>
-					{#each emailList as email, index}
-						<li class="flex items-center justify-between text-gray-900 dark:text-white">
-							<span>{email}</span>
-							<button
-								class="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
-								onclick={() => removeEmail(index)}
-							>
-								Delete
-							</button>
+		{/if}
+		{#if errorMessage}
+			<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
+				{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
+					Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how
+					to enable it:
+					<ol class="list-decimal pl-4">
+						<li>
+							Open a new browser window and type <code class="font-mono">chrome://flags</code> in the
+							address bar and press Enter.
 						</li>
-					{/each}
-				</ul>
+						<li>
+							In the search box at the top of the <code class="font-mono">chrome://flags</code> page,
+							type "Experimental Web Platform features".
+						</li>
+						<li>Find the "Experimental Web Platform features" flag.</li>
+						<li>Click the dropdown menu next to it and select "Enabled".</li>
+						<li>After enabling the flag, you will be prompted to restart the browser.</li>
+						<li>Click "Relaunch" to restart and try loading this page again.</li>
+					</ol>
+				{:else}
+					{errorMessage}
+				{/if}
+			</div>
+		{/if}
+		{#if !userName}
+			{#if !errorMessage.includes('Algorithm: Unrecognized name')}
+				<div class="mt-8">
+					When you loaded this website, a public/private key pair was generated and stored safely in
+					your browser.
+				</div>
+				<div class="my-4">Click the button below to create an account.</div>
+				<div class="my-4">You will then be able to identify yourself here using this key pair.</div>
+				<div class="mt-8 mb-2">
+					<a
+						href="/register"
+						class="rounded-md bg-blue-500 px-4 py-2 text-center text-lg text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+					>
+						Register
+					</a>
+				</div>
 			{/if}
-		</div>
-		<div class="mt-8">
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-				{tokens.length > 1 ? 'Your Registration Tokens' : 'Your Registration Token'}
+		{:else}
+			<div class="mt-8">
+				<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {userName}!</h2>
+			</div>
+			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
+				{publicKeyList.length > 1 ? 'Your Public Keys' : 'Your Public Key'}
 			</h2>
+			{#if publicKeyList.length > 1}
+				<div class="my-4">
+					These are your public keys. You will be able to share these keys with other users of this
+					website so they can enable access for you to their accounts.
+				</div>
+			{/if}
+			{#if publicKeyList.length === 1}
+				<div class="my-4">
+					This is your public key. You will be able to share it with other users of this website so
+					they can enable access for you to their accounts.
+				</div>
+			{/if}
+			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
+				<div class="flex items-center justify-between">
+					<ul class="mt-2 list-inside list-decimal">
+						{#each publicKeyList as publicKey}
+							<li class="mb-2 font-mono break-all">did:key:z{publicKey}</li>
+						{/each}
+					</ul>
+				</div>
+			</div>
+			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
+				{tokens.length > 1 ? 'Access Tokens' : 'Access Token'}
+			</h2>
+			<div class="my-4">
+				Generate an access token to sign in to your account from another device.
+			</div>
 			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 				{#if tokens.length === 0}
 					<p class="text-left text-gray-900 dark:text-white">No token available.</p>
@@ -331,22 +311,66 @@
 					</ul>
 				{/if}
 			</div>
-		</div>
-		<div class="mt-4">
-			<button
-				class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
-				onclick={generateLink}
-				disabled={isGeneratingLink}
-			>
-				{isGeneratingLink ? 'Generating...' : 'Generate Registration Token'}
-			</button>
-			{#if tokenInfoMessage}
-				<div class="mt-2 text-green-500">{tokenInfoMessage}</div>
-			{/if}
-			{#if tokenErrorMessage}
-				<div class="mt-2 text-red-500">{tokenErrorMessage}</div>
-			{/if}
-		</div>
-	{/if}
-<!-- </div> -->
-</div></div>
+			<div class="mt-4">
+				{#if tokens.length === 0}
+					<button
+						class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+						onclick={generateLink}
+						disabled={isGeneratingLink}
+					>
+						{isGeneratingLink ? 'Generating...' : 'Generate Access Token'}
+					</button>
+				{/if}
+				{#if tokenInfoMessage}
+					<div class="mt-2 text-green-500">{tokenInfoMessage}</div>
+				{/if}
+				{#if tokenErrorMessage}
+					<div class="mt-2 text-red-500">{tokenErrorMessage}</div>
+				{/if}
+			</div>
+			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">Your Email</h2>
+			<div class="my-4">
+				{#if publicKeyList.length > 1}
+					Add an email address to reset access to your account if you accidentally erase all of your
+					key pairs from your devices.
+				{/if}
+				{#if publicKeyList.length === 1}
+					Add an email address to reset access to your account if you accidentally erase your key
+					pair from this device.
+				{/if}
+			</div>
+			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
+				{#if emailList.length === 0}
+					<div class="flex flex-col items-center justify-between gap-2 sm:flex-row sm:gap-0">
+						<input
+							type="email"
+							bind:value={email}
+							class="w-full rounded-md border p-2 text-gray-900 sm:w-3/4 dark:bg-gray-600 dark:text-white"
+							placeholder="Enter your email"
+						/>
+						<button
+							class="w-full rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
+							onclick={addEmail}
+						>
+							Add Email
+						</button>
+					</div>
+				{:else}
+					<ul>
+						{#each emailList as email, index}
+							<li class="flex items-center justify-between text-gray-900 dark:text-white">
+								<span>{email}</span>
+								<button
+									class="rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+									onclick={() => removeEmail(index)}
+								>
+									Delete
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</div>
+		{/if}
+	</div>
+</div>

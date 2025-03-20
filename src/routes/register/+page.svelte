@@ -20,7 +20,13 @@
 				errorMessage = `Error: ${error}`;
 				return;
 			}
-			goto('/');
+			goto('/', {
+				state: {
+					message:
+						'Your account has been created. Try closing and reopening the browser. You will be logged in automatically!'
+				},
+				replaceState: true
+			});
 		} catch (error) {
 			console.error('Error during registration:', error);
 			errorMessage = 'An error occurred during registration';
@@ -46,19 +52,26 @@
 </script>
 
 <div class="flex h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
-	<div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-		<h2 class="mb-4 text-center text-2xl font-bold dark:text-white">Register</h2>
+	<div class="w-full max-w-lg rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+		{#if errorMessage}
+			<div class="mb-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
+				{errorMessage}
+			</div>
+		{/if}
+		<h2 class="text-center text-2xl font-bold dark:text-white">Create Account</h2>
+		<div class="my-4">
+			Enter a username to identify you on this website. 
+		</div><div class="my-4">Your username will be linked to the key pair
+			that was created and stored in your browser.
+		</div>
 		<input
 			type="text"
 			bind:value={name}
-			class="w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white"
+			class="mb-2 w-full rounded-md border p-2 dark:bg-gray-700 dark:text-white"
 			placeholder="Enter your name"
 		/>
-		{#if errorMessage}
-			<div class="mt-2 text-sm text-red-500 dark:text-red-400">{errorMessage}</div>
-		{/if}
 		<button
-			class="mt-4 w-full rounded-md bg-blue-500 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
+			class="mt-4 mb-2 w-full rounded-md bg-blue-500 py-2 text-white hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-800"
 			onclick={register}
 			disabled={isRegistering}
 		>

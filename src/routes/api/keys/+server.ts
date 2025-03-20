@@ -100,7 +100,7 @@ export const POST: RequestHandler = async ({
 		const existingPublicKey = await getUserIdByPublicKey(db, xPublicKey);
 
 		if (existingPublicKey) {
-			return json({ error: 'Public key already exists', success: false }, { status: 409 });
+			return json({ error: 'You have already linked this key to another account.', success: false }, { status: 409 });
 		}
 
 		await insertPublicKey(db, userId, xPublicKey);
