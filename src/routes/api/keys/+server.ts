@@ -98,7 +98,7 @@ export const POST: RequestHandler = async ({
 		}
 
 		await insertPublicKey(db, userId, xPublicKey);
-		await deleteRegistrationToken(db, token);
+		await deleteRegistrationToken(db, userId, token);
 
 		return json({ data: { publicKey: xPublicKey }, success: true }, { status: 201 });
 	} catch (error) {

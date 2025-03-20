@@ -97,6 +97,22 @@
 		}
 	}
 
+	async function deleteToken(token: string) {
+		try {
+			const { success, error } = await fetchTokens('DELETE', { token });
+			if (success) {
+				tokens = tokens.filter(t => t.token !== token);
+				tokenInfoMessage = 'Token has been deleted.';
+			} else {
+				tokenErrorMessage = error || 'Failed to delete token.';
+				console.error(tokenErrorMessage);
+			}
+		} catch (error) {
+			tokenErrorMessage = 'An unexpected error occurred while deleting token. Error: ' + error;
+			console.error('Error deleting token:', error);
+		}
+	}
+
 	function copyLinkToClipboard(token: string) {
 		navigator.clipboard.writeText(`${window.location.origin}/setup?token=${token}`).then(() => {
 			alert('Link copied!');
@@ -302,6 +318,12 @@
 										Copy Link
 									</button>
 								{/if}
+								<button
+									class="mt-2 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+									onclick={() => deleteToken(token)}
+								>
+									Delete Token
+								</button>
 								{#if index < tokens.length - 1}
 									<hr class="my-4 border-t border-gray-300 dark:border-gray-700" />
 								{/if}

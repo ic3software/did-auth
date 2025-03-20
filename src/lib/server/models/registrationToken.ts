@@ -47,6 +47,9 @@ export async function insertRegistrationToken(
 		.get();
 }
 
-export async function deleteRegistrationToken(db: DrizzleD1Database, token: string): Promise<void> {
-	await db.delete(registrationTokens).where(eq(registrationTokens.token, token)).run();
+export async function deleteRegistrationToken(db: DrizzleD1Database, userId: number, token: string): Promise<boolean> {
+	const result = await db.delete(registrationTokens)
+		.where(and(eq(registrationTokens.token, token), eq(registrationTokens.userId, userId)))
+		.returning();
+	return result.length > 0;
 }
