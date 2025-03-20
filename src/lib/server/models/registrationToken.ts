@@ -1,4 +1,4 @@
-import { and, eq, gt, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, lt, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
 import { registrationTokens } from '../db/schema';
@@ -40,6 +40,7 @@ export async function getTokensByUserId(
 		.select({ token: registrationTokens.token, expiresAt: registrationTokens.expiresAt })
 		.from(registrationTokens)
 		.where(eq(registrationTokens.userId, userId))
+		.orderBy(desc(registrationTokens.id))
 		.all();
 
 	return result;

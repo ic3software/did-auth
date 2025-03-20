@@ -78,12 +78,12 @@
 			const { data, success } = await fetchTokens('POST');
 			if (success) {
 				tokens = [
-					...tokens,
 					{
 						token: data.token,
 						expiresAt: new Date(data.expires_at),
 						expiresIn: Math.floor((new Date(data.expires_at).getTime() - Date.now()) / 1000)
-					}
+					},
+					...tokens
 				];
 				tokenInfoMessage = 'Token has been generated.';
 			} else {
