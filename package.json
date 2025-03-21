@@ -70,11 +70,13 @@
 	},
 	"lint-staged": {
 		"*.{ts,svelte}": [
-			"pnpm lint",
-			"pnpm format"
+			"prettier --check",
+			"eslint --max-warnings=0",
+			"prettier --write"
 		],
 		"*.{css,html,json}": [
-			"pnpm format"
+			"prettier --check",
+			"prettier --write"
 		]
 	}
 }
