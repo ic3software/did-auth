@@ -7,7 +7,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "husky",
+		"prepare": "svelte-kit sync || echo '' && husky",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
@@ -71,12 +71,10 @@
 	"lint-staged": {
 		"*.{ts,svelte}": [
 			"prettier --check",
-			"eslint --max-warnings=0",
-			"prettier --write"
+			"eslint --max-warnings=0"
 		],
 		"*.{css,html,json}": [
-			"prettier --check",
-			"prettier --write"
+			"prettier --check"
 		]
 	}
 }
