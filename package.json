@@ -11,7 +11,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"lint": "eslint .",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"db:generate": "pnpm exec drizzle-kit generate",
@@ -70,11 +70,11 @@
 	},
 	"lint-staged": {
 		"*.{ts,svelte}": [
-			"eslint --fix",
-			"prettier --write"
+			"pnpm lint",
+			"pnpm format"
 		],
 		"*.{css,html,json}": [
-			"prettier --write"
+			"pnpm format"
 		]
 	}
 }
