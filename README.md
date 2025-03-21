@@ -53,13 +53,13 @@ let dbRequest = indexedDB.open('cryptoKeysDB', 1);
 
 // Show the keys
 dbRequest.onsuccess = function (e) {
-	const db = e.target.result;
-	const transaction = db.transaction('keys', 'readonly');
-	const objectStore = transaction.objectStore('keys');
-	const request = objectStore.getAll();
-	request.onsuccess = function () {
-		console.log(request.result);
-	};
+  const db = e.target.result;
+  const transaction = db.transaction('keys', 'readonly');
+  const objectStore = transaction.objectStore('keys');
+  const request = objectStore.getAll();
+  request.onsuccess = function () {
+    console.log(request.result);
+  };
 };
 
 // Delete the database
@@ -69,4 +69,3 @@ indexedDB.deleteDatabase('cryptoKeysDB');
 The last command is especially useful if you want to remove the current set of keys from Safari.
 
 To avoid doing all of the above repeatedly when you are testing, just use private browsing windows (works well in Chromium, Safari and Firefox).
-
