@@ -59,10 +59,9 @@
 			</div>
 		{/if}
 		<h2 class="text-center text-2xl font-bold dark:text-white">Create Account</h2>
+		<div class="my-4">Enter a username to identify you on this website.</div>
 		<div class="my-4">
-			Enter a username to identify you on this website. 
-		</div><div class="my-4">Your username will be linked to the key pair
-			that was created and stored in your browser.
+			Your username will be linked to the key pair that was created and stored in your browser.
 		</div>
 		<input
 			type="text"
