@@ -17,7 +17,7 @@
 		"db:generate": "pnpm exec drizzle-kit generate",
 		"db:migrate": "pnpm exec wrangler d1 migrations apply did-auth-preview --local",
 		"db:migrate:preview": "pnpm exec wrangler d1 migrations apply did-auth-preview --remote",
-		"db:migrate:prod": "pnpm exec wrangler d1 migrations apply did-auth --remote"
+		"db:migrate:prod": "pnpm exec wrangler d1 migrations apply did-auth --remote --env production"
 	},
 	"dependencies": {
 		"@paralleldrive/cuid2": "^2.2.2",
@@ -58,7 +58,7 @@
 		"typescript-eslint": "^8.20.0",
 		"vite": "^6.0.0",
 		"vitest": "^3.0.0",
-		"wrangler": "^3.114.0"
+		"wrangler": "^4.3.0"
 	},
 	"engines": {
 		"node": ">=22.14.0"
