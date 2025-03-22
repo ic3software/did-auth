@@ -261,36 +261,47 @@
 			</h2>
 			{#if publicKeyList.length > 1}
 				<div class="my-4">
-					These are your public keys. You will be able to share these keys with other users of this
-					website so they can enable access for you to their accounts.
+					These are your public keys. You can disassociate keys from your other devices by deleting
+					them, except for the key pair on this device.
 				</div>
 			{/if}
 			{#if publicKeyList.length === 1}
 				<div class="my-4">
-					This is your public key. You will be able to share it with other users of this website so
-					they can enable access for you to their accounts.
+					This is your public key. You can add other public keys to enable access to your account
+					from other devices.
 				</div>
 			{/if}
 			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
-				<div class="flex items-center justify-between">
-					<ul class="mt-2 list-inside list-decimal">
+				<div class="flex w-full items-center justify-between">
+					<ul class="mt-2 w-full list-inside list-decimal">
 						{#each publicKeyList as publicKey, index}
-							<li class="mb-2 flex items-center justify-between font-mono break-all">
-								{index + 1}. did:key:z{publicKey}
-								{#if publicKey !== currentPublicKey}
-									<button
-										class="ml-4 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
-										onclick={() => deletePublicKey(publicKey)}
-									>
-										Delete
-									</button>
-								{:else}
-									<button
-										class="ml-4 cursor-not-allowed rounded-md bg-gray-500 px-4 py-2 text-white"
-										disabled
-									>
-										Current
-									</button>
+							<li
+								class="mb-2 flex w-full flex-col items-center justify-between font-mono break-all text-gray-900 dark:text-white"
+							>
+								<div
+									class="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+								>
+									<div class="w-full sm:flex-1">
+										did:key:z{publicKey}
+									</div>
+									{#if publicKey !== currentPublicKey}
+										<button
+											class="w-full rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 sm:w-auto dark:bg-red-600 dark:hover:bg-red-800"
+											onclick={() => deletePublicKey(publicKey)}
+										>
+											Delete
+										</button>
+									{:else}
+										<button
+											class="w-full cursor-not-allowed rounded-md bg-gray-500 px-4 py-2 text-white sm:w-auto"
+											disabled
+										>
+											Current
+										</button>
+									{/if}
+								</div>
+								{#if index < publicKeyList.length - 1}
+									<hr class="mt-4 mb-2 w-full border-2 border-gray-300 dark:border-gray-600" />
 								{/if}
 							</li>
 						{/each}
