@@ -53,13 +53,13 @@ let dbRequest = indexedDB.open('cryptoKeysDB', 1);
 
 // Show the keys
 dbRequest.onsuccess = function (e) {
-  const db = e.target.result;
-  const transaction = db.transaction('keys', 'readonly');
-  const objectStore = transaction.objectStore('keys');
-  const request = objectStore.getAll();
-  request.onsuccess = function () {
-    console.log(request.result);
-  };
+	const db = e.target.result;
+	const transaction = db.transaction('keys', 'readonly');
+	const objectStore = transaction.objectStore('keys');
+	const request = objectStore.getAll();
+	request.onsuccess = function () {
+		console.log(request.result);
+	};
 };
 
 // Delete the database

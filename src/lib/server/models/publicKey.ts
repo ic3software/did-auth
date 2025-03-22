@@ -27,11 +27,15 @@ export async function insertPublicKey(db: DrizzleD1Database, userId: number, pub
 		.get();
 }
 
-export async function deletePublicKey(db: DrizzleD1Database, userId: number, publicKey: string): Promise<boolean> {
+export async function deletePublicKey(
+	db: DrizzleD1Database,
+	userId: number,
+	publicKey: string
+): Promise<boolean> {
 	const result = await db
 		.delete(publicKeys)
 		.where(and(eq(publicKeys.userId, userId), eq(publicKeys.publicKey, publicKey)))
 		.returning();
-		
+
 	return result.length > 0;
 }

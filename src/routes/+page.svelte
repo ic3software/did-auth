@@ -20,6 +20,7 @@
 
 	let email = $state('');
 	let emailList = $state<string[]>([]);
+	let currentPublicKey = $state<string>('');
 	let publicKeyList = $state<string[]>([]);
 	let errorMessage = $state('');
 	let userName = $state('');
@@ -133,7 +134,8 @@
 				console.error(publicKeyErrorMessage);
 			}
 		} catch (error) {
-			publicKeyErrorMessage = 'An unexpected error occurred while deleting public key. Error: ' + error;
+			publicKeyErrorMessage =
+				'An unexpected error occurred while deleting public key. Error: ' + error;
 			console.error('Error deleting public key:', error);
 		}
 	}
@@ -160,7 +162,8 @@
 
 				if (keysResult.success) {
 					publicKeyList =
-						keysResult.data?.map((item: { publicKey: string }) => item.publicKey) || [];
+						keysResult.data?.publicKeys?.map((item: { publicKey: string }) => item.publicKey) || [];
+					currentPublicKey = keysResult.data?.currentPublicKey || '';
 				} else {
 					errorMessage = 'Failed to fetch keys: ' + keysResult.error;
 					console.error(errorMessage);
@@ -272,25 +275,34 @@
 				<div class="flex items-center justify-between">
 					<ul class="mt-2 list-inside list-decimal">
 						{#each publicKeyList as publicKey, index}
-							<li class="mb-2 font-mono break-all flex justify-between items-center">
+							<li class="mb-2 flex items-center justify-between font-mono break-all">
 								{index + 1}. did:key:z{publicKey}
-								<button
-									class="rounded-md bg-red-500 ml-4 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
-									onclick={() => deletePublicKey(publicKey)}
-								>
-									Delete
-								</button>
+								{#if publicKey !== currentPublicKey}
+									<button
+										class="ml-4 rounded-md bg-red-500 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+										onclick={() => deletePublicKey(publicKey)}
+									>
+										Delete
+									</button>
+								{:else}
+									<button
+										class="ml-4 cursor-not-allowed rounded-md bg-gray-500 px-4 py-2 text-white"
+										disabled
+									>
+										Current
+									</button>
+								{/if}
 							</li>
 						{/each}
 					</ul>
 				</div>
 			</div>
 			{#if publicKeyInfoMessage}
-					<div class="mt-2 text-green-500">{publicKeyInfoMessage}</div>
-				{/if}
-				{#if publicKeyErrorMessage}
-					<div class="mt-2 text-red-500">{publicKeyErrorMessage}</div>
-				{/if}
+				<div class="mt-2 text-green-500">{publicKeyInfoMessage}</div>
+			{/if}
+			{#if publicKeyErrorMessage}
+				<div class="mt-2 text-red-500">{publicKeyErrorMessage}</div>
+			{/if}
 			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
 				{tokens.length > 1 ? 'Access Tokens' : 'Access Token'}
 			</h2>

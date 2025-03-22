@@ -2,10 +2,10 @@ import { isValidBase58btc } from '$lib/base58btcUtils';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
 import {
+	deletePublicKey,
 	getPublicKeysByUserId,
 	getUserIdByPublicKey,
-	insertPublicKey,
-	deletePublicKey
+	insertPublicKey
 } from '$lib/server/models/publicKey';
 import {
 	deleteRegistrationToken,
@@ -52,7 +52,10 @@ export const GET: RequestHandler = async ({
 		const userId = userByPublicKey.userId;
 		const userPublicKeys = await getPublicKeysByUserId(db, userId);
 
-		return json({ data: userPublicKeys, success: true }, { status: 200 });
+		return json(
+			{ data: { publicKeys: userPublicKeys, currentPublicKey: xPublicKey }, success: true },
+			{ status: 200 }
+		);
 	} catch (error) {
 		console.error('Error processing GET request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
@@ -157,14 +160,20 @@ export const DELETE: RequestHandler = async ({
 		}
 
 		if (xPublicKey === publicKey) {
-			return json({ error: 'Cannot delete the current public key', success: false }, { status: 400 });
+			return json(
+				{ error: 'Cannot delete the current public key', success: false },
+				{ status: 400 }
+			);
 		}
 
 		const userId = userByPublicKey.userId;
 		const deleteResult = await deletePublicKey(db, userId, publicKey);
 
 		if (!deleteResult) {
-			return json({ error: 'Public key has already been deleted', success: false }, { status: 404 });
+			return json(
+				{ error: 'Public key has already been deleted', success: false },
+				{ status: 404 }
+			);
 		}
 
 		return json({ success: true }, { status: 200 });
