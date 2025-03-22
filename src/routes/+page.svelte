@@ -27,6 +27,8 @@
 	let isGeneratingLink = $state(false);
 	let tokenInfoMessage = $state('');
 	let tokenErrorMessage = $state('');
+	let publicKeyInfoMessage = $state('');
+	let publicKeyErrorMessage = $state('');
 
 	async function addEmail() {
 		if (!email) return;
@@ -115,6 +117,25 @@
 		navigator.clipboard.writeText(`${window.location.origin}/access?token=${token}`).then(() => {
 			alert('Link copied!');
 		});
+	}
+
+	async function deletePublicKey(publicKey: string) {
+		publicKeyInfoMessage = '';
+		publicKeyErrorMessage = '';
+
+		try {
+			const { success, error } = await fetchKeys('DELETE', { publicKey });
+			if (success) {
+				publicKeyList = publicKeyList.filter((key) => key !== publicKey);
+				publicKeyInfoMessage = 'The public key has been deleted.';
+			} else {
+				publicKeyErrorMessage = error || 'Failed to delete public key.';
+				console.error(publicKeyErrorMessage);
+			}
+		} catch (error) {
+			publicKeyErrorMessage = 'An unexpected error occurred while deleting public key. Error: ' + error;
+			console.error('Error deleting public key:', error);
+		}
 	}
 
 	onMount(async () => {
@@ -250,12 +271,26 @@
 			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 				<div class="flex items-center justify-between">
 					<ul class="mt-2 list-inside list-decimal">
-						{#each publicKeyList as publicKey}
-							<li class="mb-2 font-mono break-all">did:key:z{publicKey}</li>
+						{#each publicKeyList as publicKey, index}
+							<li class="mb-2 font-mono break-all flex justify-between items-center">
+								{index + 1}. did:key:z{publicKey}
+								<button
+									class="rounded-md bg-red-500 ml-4 px-4 py-2 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-800"
+									onclick={() => deletePublicKey(publicKey)}
+								>
+									Delete
+								</button>
+							</li>
 						{/each}
 					</ul>
 				</div>
 			</div>
+			{#if publicKeyInfoMessage}
+					<div class="mt-2 text-green-500">{publicKeyInfoMessage}</div>
+				{/if}
+				{#if publicKeyErrorMessage}
+					<div class="mt-2 text-red-500">{publicKeyErrorMessage}</div>
+				{/if}
 			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
 				{tokens.length > 1 ? 'Access Tokens' : 'Access Token'}
 			</h2>

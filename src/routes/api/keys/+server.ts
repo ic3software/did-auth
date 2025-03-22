@@ -4,7 +4,8 @@ import { getDB } from '$lib/server/db/db';
 import {
 	getPublicKeysByUserId,
 	getUserIdByPublicKey,
-	insertPublicKey
+	insertPublicKey,
+	deletePublicKey
 } from '$lib/server/models/publicKey';
 import {
 	deleteRegistrationToken,
@@ -112,6 +113,63 @@ export const POST: RequestHandler = async ({
 		return json({ data: { publicKey: xPublicKey }, success: true }, { status: 201 });
 	} catch (error) {
 		console.error('Error processing POST request:', error);
+		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
+	}
+};
+
+export const DELETE: RequestHandler = async ({
+	platform = { env: { DB: {} as D1Database } },
+	request
+}) => {
+	try {
+		const db = getDB(platform.env);
+		const body = await request.json();
+		const { publicKey } = body;
+
+		if (!publicKey) {
+			return json({ error: 'Missing publicKey', success: false }, { status: 400 });
+		}
+
+		const xPublicKey = request.headers.get('X-Public-Key');
+		const xSignature = request.headers.get('X-Signature');
+
+		if (!xPublicKey || !xSignature) {
+			return json(
+				{ error: 'Missing X-Public-Key or X-Signature', success: false },
+				{ status: 400 }
+			);
+		}
+
+		if (!isValidBase58btc(xSignature)) {
+			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
+		}
+
+		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
+
+		if (!isVerified) {
+			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+		}
+
+		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
+
+		if (!userByPublicKey) {
+			return json({ error: 'User not found', success: false }, { status: 404 });
+		}
+
+		if (xPublicKey === publicKey) {
+			return json({ error: 'Cannot delete the current public key', success: false }, { status: 400 });
+		}
+
+		const userId = userByPublicKey.userId;
+		const deleteResult = await deletePublicKey(db, userId, publicKey);
+
+		if (!deleteResult) {
+			return json({ error: 'Public key has already been deleted', success: false }, { status: 404 });
+		}
+
+		return json({ success: true }, { status: 200 });
+	} catch (error) {
+		console.error('Error processing DELETE request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });
 	}
 };

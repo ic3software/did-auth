@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
 import { publicKeys } from '../db/schema';
@@ -25,4 +25,13 @@ export async function insertPublicKey(db: DrizzleD1Database, userId: number, pub
 		.values({ userId, publicKey })
 		.returning({ id: publicKeys.id })
 		.get();
+}
+
+export async function deletePublicKey(db: DrizzleD1Database, userId: number, publicKey: string): Promise<boolean> {
+	const result = await db
+		.delete(publicKeys)
+		.where(and(eq(publicKeys.userId, userId), eq(publicKeys.publicKey, publicKey)))
+		.returning();
+		
+	return result.length > 0;
 }
