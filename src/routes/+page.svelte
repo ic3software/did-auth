@@ -198,8 +198,8 @@
 	}
 </script>
 
-<div class="flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-	<div class="mt-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+<div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
+	<div class="my-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
 		<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
 			<code class="font-mono">did:key</code> Authentication
 		</h1>
