@@ -345,7 +345,7 @@
 									<div class="flex flex-col gap-2 sm:flex-row sm:gap-4">
 										{#if expiresIn > 0}
 											<button
-												class="w-full rounded-md bg-green-500 px-4 py-2 whitespace-nowrap text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
+												class="w-full rounded-md bg-blue-500 px-4 py-2 whitespace-nowrap text-white hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-800"
 												onclick={() => copyLinkToClipboard(token)}
 											>
 												Copy Link
@@ -407,7 +407,7 @@
 							placeholder="Enter your email"
 						/>
 						<button
-							class="w-full rounded-md bg-green-500 px-4 py-2 text-white hover:bg-green-700 sm:w-auto dark:bg-green-600 dark:hover:bg-green-800"
+							class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-800"
 							onclick={addEmail}
 						>
 							Add Email
