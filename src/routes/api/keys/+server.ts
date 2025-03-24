@@ -23,6 +23,8 @@ export const GET: RequestHandler = async ({
 		const db = getDB(platform.env);
 		const xPublicKey = request.headers.get('X-Public-Key');
 		const xSignature = request.headers.get('X-Signature');
+		const xTimer = request.headers.get('X-Timer');
+		const xTimerSignature = request.headers.get('X-Timer-Signature');
 
 		if (!xPublicKey) {
 			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
@@ -33,11 +35,17 @@ export const GET: RequestHandler = async ({
 			return json({ error: 'User not found', success: false }, { status: 404 });
 		}
 
-		if (!isValidBase58btc(xSignature)) {
+		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const isVerified = verifySignature(`{}`, xSignature, xPublicKey);
+		const isVerified = await verifySignature(
+			`{}`,
+			xSignature,
+			xPublicKey,
+			xTimer!,
+			xTimerSignature!
+		);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
@@ -77,6 +85,8 @@ export const POST: RequestHandler = async ({
 
 		const xPublicKey = request.headers.get('X-Public-Key');
 		const xSignature = request.headers.get('X-Signature');
+		const xTimer = request.headers.get('X-Timer');
+		const xTimerSignature = request.headers.get('X-Timer-Signature');
 
 		if (!xPublicKey || !xSignature) {
 			return json(
@@ -85,11 +95,17 @@ export const POST: RequestHandler = async ({
 			);
 		}
 
-		if (!isValidBase58btc(xSignature)) {
+		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
+		const isVerified = await verifySignature(
+			JSON.stringify(body),
+			xSignature,
+			xPublicKey,
+			xTimer!,
+			xTimerSignature!
+		);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
@@ -135,6 +151,8 @@ export const DELETE: RequestHandler = async ({
 
 		const xPublicKey = request.headers.get('X-Public-Key');
 		const xSignature = request.headers.get('X-Signature');
+		const xTimer = request.headers.get('X-Timer');
+		const xTimerSignature = request.headers.get('X-Timer-Signature');
 
 		if (!xPublicKey || !xSignature) {
 			return json(
@@ -143,11 +161,17 @@ export const DELETE: RequestHandler = async ({
 			);
 		}
 
-		if (!isValidBase58btc(xSignature)) {
+		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
 			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
 		}
 
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
+		const isVerified = await verifySignature(
+			JSON.stringify(body),
+			xSignature,
+			xPublicKey,
+			xTimer!,
+			xTimerSignature!
+		);
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
