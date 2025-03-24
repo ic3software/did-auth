@@ -2,7 +2,12 @@ import { isValidBase58btc } from '$lib/base58btcUtils';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
-import { getNameByUserId, getUserIdByName, insertUser } from '$lib/server/models/user';
+import {
+	doesNameExist,
+	getNameByUserId,
+	getUserIdByName,
+	insertUser
+} from '$lib/server/models/user';
 import type { D1Database } from '@cloudflare/workers-types';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -82,6 +87,15 @@ export const POST: RequestHandler = async ({
 
 		if (!isVerified) {
 			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+		}
+
+		const nameExists = await doesNameExist(db, name);
+
+		if (nameExists) {
+			return json(
+				{ error: 'Name already exists, please choose another name', success: false },
+				{ status: 403 }
+			);
 		}
 
 		const [userIdByName, userIdByPublicKey] = await Promise.all([
