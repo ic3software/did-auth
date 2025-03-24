@@ -29,7 +29,7 @@ export async function verifySignature(
 		}
 		const currentTime = Math.floor(Date.now());
 		const timeDiff = Math.abs(currentTime - parseInt(xTimer));
-		if (timeDiff > 60000) {
+		if (Math.abs(timeDiff) > 60000) {
 			console.error('Timestamp is too old or too far in the future');
 			// TODO: Return the boolean along with an error message so the client can display it.
 			// For example, if the timestamp is too old, return:
