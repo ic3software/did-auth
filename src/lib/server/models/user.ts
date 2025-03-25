@@ -8,7 +8,20 @@ export async function getUserIdByName(db: DrizzleD1Database, name: string) {
 }
 
 export async function insertUser(db: DrizzleD1Database, name: string) {
-	return await db.insert(users).values({ name }).returning({ id: users.id }).get();
+	return await db
+		.insert(users)
+		.values({ name, normalizedName: name.toLowerCase() })
+		.returning({ id: users.id })
+		.get();
+}
+
+export async function doesNameExist(db: DrizzleD1Database, name: string): Promise<boolean> {
+	const result = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.normalizedName, name.toLowerCase()))
+		.get();
+	return result !== undefined;
 }
 
 export async function getNameByUserId(db: DrizzleD1Database, id: number) {

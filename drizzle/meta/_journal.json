@@ -15,6 +15,13 @@
       "when": 1742373020288,
       "tag": "0001_gray_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1742848325091,
+      "tag": "0002_curved_rachel_grey",
+      "breakpoints": true
     }
   ]
 }
