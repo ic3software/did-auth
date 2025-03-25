@@ -10,7 +10,7 @@ export async function verifySignature(
 	publicKey: string,
 	xTimer: string,
 	xTimerSignature: string
-): Promise<boolean> {
+) {
 	try {
 		// First validate that the signatures and public key are in base58btc format
 		if (
@@ -18,26 +18,20 @@ export async function verifySignature(
 			!isValidBase58btc(publicKey) ||
 			!isValidBase58btc(xTimerSignature)
 		) {
-			console.error('Invalid base58btc format for signature or public key');
-			return false;
+			return { success: false, error: 'Invalid base58btc format for signature or public key' };
 		}
 
 		// Check if timestamp exists and is within 1 minute
 		if (!xTimer || typeof xTimer !== 'string') {
-			console.error('Missing or invalid timestamp');
-			return false;
+			return { success: false, error: 'Missing or invalid timestamp' };
 		}
 		const currentTime = Math.floor(Date.now());
 		const timeDiff = Math.abs(currentTime - parseInt(xTimer));
 		if (Math.abs(timeDiff) > 60000) {
-			console.error('Timestamp is too old or too far in the future');
-			// TODO: Return the boolean along with an error message so the client can display it.
-			// For example, if the timestamp is too old, return:
-			//  {
-			//    "success": false,
-			//    "error": "Timestamp is too old or too far in the future - Please check your system clock."
-			//  }
-			return false;
+			return {
+				success: false,
+				error: 'Timestamp is too old or too far in the future - Please check your system clock.'
+			};
 		}
 
 		// For empty payloads, use an empty object string
@@ -61,6 +55,10 @@ export async function verifySignature(
 			xTimerDataBuffer
 		);
 
+		if (!isValidTimer) {
+			return { success: false, error: 'Invalid x-timer signature' };
+		}
+
 		const isValid = await crypto.subtle.verify(
 			{
 				name: 'Ed25519'
@@ -70,9 +68,13 @@ export async function verifySignature(
 			dataBuffer
 		);
 
-		return isValidTimer && isValid;
+		if (!isValid) {
+			return { success: false, error: 'Invalid signature for data payload' };
+		}
+
+		return { success: true };
 	} catch (error) {
 		console.error('Error verifying signature:', error);
-		return false;
+		return { success: false, error: 'Error verifying signature' };
 	}
 }

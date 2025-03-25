@@ -43,8 +43,8 @@ export const GET: RequestHandler = async ({
 			xTimerSignature!
 		);
 
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+		if (!isVerified.success) {
+			return json({ error: isVerified.error, success: false }, { status: 400 });
 		}
 
 		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
@@ -95,8 +95,8 @@ export const POST: RequestHandler = async ({
 			xTimerSignature!
 		);
 
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+		if (!isVerified.success) {
+			return json({ error: isVerified.error, success: false }, { status: 400 });
 		}
 
 		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
@@ -155,8 +155,8 @@ export const DELETE: RequestHandler = async ({
 			xTimerSignature!
 		);
 
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+		if (!isVerified.success) {
+			return json({ error: isVerified.error, success: false }, { status: 400 });
 		}
 
 		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
