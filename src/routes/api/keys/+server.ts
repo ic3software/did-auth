@@ -1,4 +1,5 @@
 import { isValidBase58btc } from '$lib/base58btcUtils';
+import { authenticateRequest } from '$lib/server/auth';
 import { verifySignature } from '$lib/server/db/crypto.server';
 import { getDB } from '$lib/server/db/db';
 import {
@@ -20,44 +21,14 @@ export const GET: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-		const xTimer = request.headers.get('X-Timer');
-		const xTimerSignature = request.headers.get('X-Timer-Signature');
+		const authResult = await authenticateRequest(platform, request);
 
-		if (!xPublicKey) {
-			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
 		}
 
-		// If no signature is provided, this is a new user
-		if (!xSignature) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = await verifySignature(
-			`{}`,
-			xSignature,
-			xPublicKey,
-			xTimer!,
-			xTimerSignature!
-		);
-
-		if (!isVerified.success) {
-			return json({ error: isVerified.error, success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
+		const { userId, db } = authResult.data;
+		const xPublicKey = request.headers.get('X-Public-Key')!;
 		const userPublicKeys = await getPublicKeysByUserId(db, userId);
 
 		return json(
