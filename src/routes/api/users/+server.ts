@@ -69,6 +69,12 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Missing name', success: false }, { status: 400 });
 		}
 
+		const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+
+		if (!alphanumericRegex.test(name)) {
+			return json({ error: 'Name must be alphanumeric', success: false }, { status: 400 });
+		}
+
 		const xPublicKey = request.headers.get('X-Public-Key');
 		const xSignature = request.headers.get('X-Signature');
 
