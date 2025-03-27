@@ -17,7 +17,7 @@
 			isRegistering = true;
 			const { success, error } = await fetchUsers('POST', { name });
 			if (!success) {
-				errorMessage = `Error: ${error}`;
+				errorMessage = `${error}`;
 				return;
 			}
 			goto('/', {

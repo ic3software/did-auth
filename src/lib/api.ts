@@ -22,11 +22,16 @@ async function loadKeyPair() {
 async function fetchApi(method: string, endpoint: string, payload: ApiPayload = {}) {
 	try {
 		await loadKeyPair();
+
+		const xTimer = Math.floor(Date.now());
 		const signature = await signRequest(payload, keypair!.privateKey);
+		const xTimerSignature = await signRequest(xTimer, keypair!.privateKey);
 		const res = await fetch(endpoint, {
 			method,
 			headers: {
 				'Content-Type': 'application/json',
+				'X-Timer': xTimer.toString(),
+				'X-Timer-Signature': xTimerSignature,
 				'X-Signature': signature,
 				'X-Public-Key': await exportPublicKey(keypair!.publicKey)
 			},

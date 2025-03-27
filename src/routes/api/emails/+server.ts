@@ -1,6 +1,4 @@
-import { isValidBase58btc } from '$lib/base58btcUtils';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getDB } from '$lib/server/db/db';
+import { authenticateRequest } from '$lib/server/auth';
 import {
 	checkEmailExists,
 	deleteEmail,
@@ -8,7 +6,6 @@ import {
 	getEmailsByUserId,
 	insertEmail
 } from '$lib/server/models/email';
-import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -18,37 +15,14 @@ export const GET: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
+		const authResult = await authenticateRequest(platform, request);
 
-		if (!xPublicKey) {
-			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
 		}
 
-		// If no signature is provided, this is a new user
-		if (!xSignature) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(`{}`, xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-		const userEmails = await getEmailsByUserId(db, userId);
+		const { userId, db } = authResult.data;
+		const userEmails = await getEmailsByUserId(db, userId!);
 
 		return json({ data: userEmails, success: true }, { status: 200 });
 	} catch (error) {
@@ -62,51 +36,25 @@ export const POST: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { email } = body;
+		const authResult = await authenticateRequest(platform, request, { parseBody: true });
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { userId, db, body } = authResult.data;
+		const { email } = body as { email: string };
 
 		if (!email) {
 			return json({ error: 'Missing email', success: false }, { status: 400 });
 		}
 
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-
 		const existingEmail = await checkEmailExists(db, email);
 		if (existingEmail) {
-			return json(
-				{ error: 'Email already exists, cannot bind again', success: false },
-				{ status: 409 }
-			);
+			return json({ error: 'Email already exists', success: false }, { status: 409 });
 		}
 
-		await insertEmail(db, userId, email);
+		await insertEmail(db, userId!, email);
 
 		return json({ data: { email }, success: true }, { status: 201 });
 	} catch (error) {
@@ -120,43 +68,20 @@ export const DELETE: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { email } = body;
+		const authResult = await authenticateRequest(platform, request, { parseBody: true });
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { userId, db, body } = authResult.data;
+		const { email } = body as { email: string };
 
 		if (!email) {
 			return json({ error: 'Missing email', success: false }, { status: 400 });
 		}
 
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-
-		const existingEmail = await getEmailByUserIdAndEmail(db, userId, email);
+		const existingEmail = await getEmailByUserIdAndEmail(db, userId!, email);
 
 		if (!existingEmail) {
 			return json({ error: 'Email not found', success: false }, { status: 404 });

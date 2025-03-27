@@ -1,6 +1,4 @@
-import { isValidBase58btc } from '$lib/base58btcUtils';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getDB } from '$lib/server/db/db';
+import { authenticateRequest } from '$lib/server/auth';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
 import {
 	doesNameExist,
@@ -17,37 +15,14 @@ export const GET: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
+		const authResult = await authenticateRequest(platform, request);
 
-		if (!xPublicKey) {
-			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
 		}
 
-		// If no signature is provided, this is a new user
-		if (!xSignature) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(`{}`, xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-		const userName = await getNameByUserId(db, userId);
+		const { userId, db } = authResult.data;
+		const userName = await getNameByUserId(db, userId!);
 
 		return json({ data: userName, success: true }, { status: 200 });
 	} catch (error) {
@@ -61,45 +36,33 @@ export const POST: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { name } = body;
+		const authResult = await authenticateRequest(platform, request, {
+			parseBody: true,
+			requiredUserId: false
+		});
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { db, xPublicKey, body } = authResult.data;
+		const { name } = body as { name: string };
 
 		if (!name) {
-			return json({ error: 'Missing name', success: false }, { status: 400 });
+			return json({ error: 'Missing username', success: false }, { status: 400 });
 		}
 
 		const alphanumericRegex = /^[a-zA-Z0-9]+$/;
 
 		if (!alphanumericRegex.test(name)) {
-			return json({ error: 'Name must be alphanumeric', success: false }, { status: 400 });
-		}
-
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
+			return json({ error: 'Username must be alphanumeric', success: false }, { status: 400 });
 		}
 
 		const nameExists = await doesNameExist(db, name);
 
 		if (nameExists) {
 			return json(
-				{ error: 'Name already exists, please choose another name', success: false },
+				{ error: 'Username already exists, please choose another username', success: false },
 				{ status: 403 }
 			);
 		}
@@ -118,7 +81,7 @@ export const POST: RequestHandler = async ({
 
 		if (userIdByPublicKey) {
 			return json(
-				{ error: 'Public key already exists, please reset your keypairs', success: false },
+				{ error: 'Public key already exists, please reset your key pairs', success: false },
 				{ status: 403 }
 			);
 		}

@@ -1,6 +1,4 @@
-import { isValidBase58btc } from '$lib/base58btcUtils';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getDB } from '$lib/server/db/db';
+import { authenticateRequest } from '$lib/server/auth';
 import {
 	deletePublicKey,
 	getPublicKeysByUserId,
@@ -20,37 +18,14 @@ export const GET: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
+		const authResult = await authenticateRequest(platform, request);
 
-		if (!xPublicKey) {
-			return json({ error: 'Missing X-Public-Key', success: false }, { status: 400 });
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
 		}
 
-		// If no signature is provided, this is a new user
-		if (!xSignature) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(`{}`, xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-		const userPublicKeys = await getPublicKeysByUserId(db, userId);
+		const { userId, db, xPublicKey } = authResult.data;
+		const userPublicKeys = await getPublicKeysByUserId(db, userId!);
 
 		return json(
 			{ data: { publicKeys: userPublicKeys, currentPublicKey: xPublicKey }, success: true },
@@ -67,32 +42,20 @@ export const POST: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { token } = body;
+		const authResult = await authenticateRequest(platform, request, {
+			parseBody: true,
+			requiredUserId: false
+		});
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { db, xPublicKey, body } = authResult.data;
+		const { token } = body as { token: string };
 
 		if (!token) {
 			return json({ error: 'Missing token', success: false }, { status: 400 });
-		}
-
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
 		}
 
 		const userId = await isTokenValidAndGetUserId(db, token);
@@ -105,7 +68,7 @@ export const POST: RequestHandler = async ({
 
 		if (existingPublicKey) {
 			return json(
-				{ error: 'You have already linked this key to another account.', success: false },
+				{ error: 'You have already linked this public key to another account', success: false },
 				{ status: 409 }
 			);
 		}
@@ -125,38 +88,17 @@ export const DELETE: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { publicKey } = body;
+		const authResult = await authenticateRequest(platform, request, { parseBody: true });
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { userId, db, xPublicKey, body } = authResult.data;
+		const { publicKey } = body as { publicKey: string };
 
 		if (!publicKey) {
-			return json({ error: 'Missing publicKey', success: false }, { status: 400 });
-		}
-
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = verifySignature(JSON.stringify(body), xSignature, xPublicKey);
-
-		if (!isVerified) {
-			return json({ error: 'Invalid signature', success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
+			return json({ error: 'Missing public key', success: false }, { status: 400 });
 		}
 
 		if (xPublicKey === publicKey) {
@@ -166,8 +108,7 @@ export const DELETE: RequestHandler = async ({
 			);
 		}
 
-		const userId = userByPublicKey.userId;
-		const deleteResult = await deletePublicKey(db, userId, publicKey);
+		const deleteResult = await deletePublicKey(db, userId!, publicKey);
 
 		if (!deleteResult) {
 			return json(
