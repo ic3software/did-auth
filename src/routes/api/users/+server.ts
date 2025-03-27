@@ -1,7 +1,4 @@
-import { isValidBase58btc } from '$lib/base58btcUtils';
 import { authenticateRequest } from '$lib/server/auth';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getDB } from '$lib/server/db/db';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
 import {
 	doesNameExist,
@@ -25,7 +22,7 @@ export const GET: RequestHandler = async ({
 		}
 
 		const { userId, db } = authResult.data;
-		const userName = await getNameByUserId(db, userId);
+		const userName = await getNameByUserId(db, userId!);
 
 		return json({ data: userName, success: true }, { status: 200 });
 	} catch (error) {
@@ -39,9 +36,17 @@ export const POST: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { name } = body;
+		const authResult = await authenticateRequest(platform, request, {
+			parseBody: true,
+			requiredUserId: false
+		});
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { db, xPublicKey, body } = authResult.data;
+		const { name } = body as { name: string };
 
 		if (!name) {
 			return json({ error: 'Missing name', success: false }, { status: 400 });
@@ -51,34 +56,6 @@ export const POST: RequestHandler = async ({
 
 		if (!alphanumericRegex.test(name)) {
 			return json({ error: 'Name must be alphanumeric', success: false }, { status: 400 });
-		}
-
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-		const xTimer = request.headers.get('X-Timer');
-		const xTimerSignature = request.headers.get('X-Timer-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = await verifySignature(
-			JSON.stringify(body),
-			xSignature,
-			xPublicKey,
-			xTimer!,
-			xTimerSignature!
-		);
-
-		if (!isVerified.success) {
-			return json({ error: isVerified.error, success: false }, { status: 400 });
 		}
 
 		const nameExists = await doesNameExist(db, name);

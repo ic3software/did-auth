@@ -6,17 +6,24 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 
 interface AuthResult {
-	userId: number;
+	userId?: number;
 	db: DrizzleD1Database;
+	xPublicKey: string;
+	body?: unknown;
 }
 
 export async function authenticateRequest(
 	platform: { env: { DB: D1Database } },
-	request: Request
+	request: Request,
+	options?: {
+		parseBody?: boolean;
+		requiredUserId?: boolean;
+	}
 ): Promise<
 	{ success: true; data: AuthResult } | { success: false; error: string; status: number }
 > {
 	const db = getDB(platform.env);
+	const body = options?.parseBody ? await request.json() : undefined;
 	const xPublicKey = request.headers.get('X-Public-Key');
 	const xSignature = request.headers.get('X-Signature');
 	const xTimer = request.headers.get('X-Timer');
@@ -38,17 +45,29 @@ export async function authenticateRequest(
 		return { success: false, error: 'Invalid signature format', status: 400 };
 	}
 
-	const isVerified = await verifySignature(`{}`, xSignature, xPublicKey, xTimer, xTimerSignature);
+	const isVerified = await verifySignature(
+		body ? JSON.stringify(body) : '{}',
+		xSignature,
+		xPublicKey,
+		xTimer,
+		xTimerSignature
+	);
 
 	if (!isVerified.success) {
 		return { success: false, error: isVerified.error ?? 'Verification failed', status: 400 };
 	}
 
-	const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
+	let userId: number | undefined = undefined;
 
-	if (!userByPublicKey) {
-		return { success: false, error: 'User not found', status: 404 };
+	if (options?.requiredUserId ?? true) {
+		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
+
+		if (!userByPublicKey) {
+			return { success: false, error: 'User not found', status: 404 };
+		}
+
+		userId = userByPublicKey.userId;
 	}
 
-	return { success: true, data: { userId: userByPublicKey.userId, db } };
+	return { success: true, data: { userId, db, xPublicKey, body } };
 }

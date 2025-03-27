@@ -1,8 +1,4 @@
-import { isValidBase58btc } from '$lib/base58btcUtils';
 import { authenticateRequest } from '$lib/server/auth';
-import { verifySignature } from '$lib/server/db/crypto.server';
-import { getDB } from '$lib/server/db/db';
-import { getUserIdByPublicKey } from '$lib/server/models/publicKey';
 import {
 	deleteRegistrationToken,
 	getTokensByUserId,
@@ -25,7 +21,7 @@ export const GET: RequestHandler = async ({
 		}
 
 		const { userId, db } = authResult.data;
-		const tokens = await getTokensByUserId(db, userId);
+		const tokens = await getTokensByUserId(db, userId!);
 
 		return json({ data: { tokens }, success: true }, { status: 200 });
 	} catch (error) {
@@ -39,47 +35,17 @@ export const POST: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
+		const authResult = await authenticateRequest(platform, request);
 
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-		const xTimer = request.headers.get('X-Timer');
-		const xTimerSignature = request.headers.get('X-Timer-Signature');
-
-		if (!xPublicKey || !xSignature) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
 		}
 
-		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = await verifySignature(
-			`{}`,
-			xSignature,
-			xPublicKey,
-			xTimer!,
-			xTimerSignature!
-		);
-
-		if (!isVerified.success) {
-			return json({ error: isVerified.error, success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
+		const { userId, db } = authResult.data;
 
 		const token = generateRegistrationToken();
 
-		const { expiresAt } = await insertRegistrationToken(db, userId, token);
+		const { expiresAt } = await insertRegistrationToken(db, userId!, token);
 
 		return json({ data: { token, expires_at: expiresAt }, success: true }, { status: 201 });
 	} catch (error) {
@@ -93,51 +59,20 @@ export const DELETE: RequestHandler = async ({
 	request
 }) => {
 	try {
-		const db = getDB(platform.env);
-		const body = await request.json();
-		const { token } = body;
+		const authResult = await authenticateRequest(platform, request, { parseBody: true });
+
+		if (!authResult.success) {
+			return json({ error: authResult.error, success: false }, { status: authResult.status });
+		}
+
+		const { userId, db, body } = authResult.data;
+		const { token } = body as { token: string };
 
 		if (!token) {
 			return json({ error: 'Missing token', success: false }, { status: 400 });
 		}
 
-		const xPublicKey = request.headers.get('X-Public-Key');
-		const xSignature = request.headers.get('X-Signature');
-		const xTimer = request.headers.get('X-Timer');
-		const xTimerSignature = request.headers.get('X-Timer-Signature');
-
-		if (!xPublicKey || !xSignature || !token) {
-			return json(
-				{ error: 'Missing X-Public-Key or X-Signature', success: false },
-				{ status: 400 }
-			);
-		}
-
-		if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature!)) {
-			return json({ error: 'Invalid signature format', success: false }, { status: 400 });
-		}
-
-		const isVerified = await verifySignature(
-			JSON.stringify(body),
-			xSignature,
-			xPublicKey,
-			xTimer!,
-			xTimerSignature!
-		);
-
-		if (!isVerified.success) {
-			return json({ error: isVerified.error, success: false }, { status: 400 });
-		}
-
-		const userByPublicKey = await getUserIdByPublicKey(db, xPublicKey);
-
-		if (!userByPublicKey) {
-			return json({ error: 'User not found', success: false }, { status: 404 });
-		}
-
-		const userId = userByPublicKey.userId;
-
-		const deleteResult = await deleteRegistrationToken(db, userId, token);
+		const deleteResult = await deleteRegistrationToken(db, userId!, token);
 
 		if (!deleteResult) {
 			return json({ error: 'Token has already been deleted', success: false }, { status: 404 });
