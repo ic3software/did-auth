@@ -5,17 +5,17 @@ import { isValidBase58btc } from '$lib/base58btcUtils';
  * Verifies a signature using the provided public key in a Node.js environment.
  */
 export async function verifySignature(
-	data: string,
-	signature: string,
-	publicKey: string,
+	body: string,
+	XSignature: string,
+	XPublicKey: string,
 	xTimer: string,
 	xTimerSignature: string
-) {
+): Promise<{ success: boolean; error?: string }> {
 	try {
 		// First validate that the signatures and public key are in base58btc format
 		if (
-			!isValidBase58btc(signature) ||
-			!isValidBase58btc(publicKey) ||
+			!isValidBase58btc(XSignature) ||
+			!isValidBase58btc(XPublicKey) ||
 			!isValidBase58btc(xTimerSignature)
 		) {
 			return { success: false, error: 'Invalid base58btc format for signature or public key' };
@@ -34,15 +34,13 @@ export async function verifySignature(
 			};
 		}
 
-		// For empty payloads, use an empty object string
-		const payloadString = data === '{}' ? '{}' : data;
-
-		const publicKeyBytes = uint8arrays.fromString(publicKey, 'base58btc');
+		// Finally, verify the timer and payload signatures
+		const publicKeyBytes = uint8arrays.fromString(XPublicKey, 'base58btc');
 		const importedKey = await crypto.subtle.importKey('raw', publicKeyBytes, 'Ed25519', false, [
 			'verify'
 		]);
-		const signatureBytes = uint8arrays.fromString(signature, 'base58btc');
-		const dataBuffer = new TextEncoder().encode(payloadString);
+		const signatureBytes = uint8arrays.fromString(XSignature, 'base58btc');
+		const dataBuffer = new TextEncoder().encode(body);
 		const xTimerSignatureBytes = uint8arrays.fromString(xTimerSignature, 'base58btc');
 		const xTimerDataBuffer = new TextEncoder().encode(xTimer);
 
@@ -56,7 +54,7 @@ export async function verifySignature(
 		);
 
 		if (!isValidTimer) {
-			return { success: false, error: 'Invalid x-timer signature' };
+			return { success: false, error: 'Invalid signature for timer' };
 		}
 
 		const isValid = await crypto.subtle.verify(

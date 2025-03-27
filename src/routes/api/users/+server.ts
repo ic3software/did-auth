@@ -49,20 +49,20 @@ export const POST: RequestHandler = async ({
 		const { name } = body as { name: string };
 
 		if (!name) {
-			return json({ error: 'Missing name', success: false }, { status: 400 });
+			return json({ error: 'Missing username', success: false }, { status: 400 });
 		}
 
 		const alphanumericRegex = /^[a-zA-Z0-9]+$/;
 
 		if (!alphanumericRegex.test(name)) {
-			return json({ error: 'Name must be alphanumeric', success: false }, { status: 400 });
+			return json({ error: 'Username must be alphanumeric', success: false }, { status: 400 });
 		}
 
 		const nameExists = await doesNameExist(db, name);
 
 		if (nameExists) {
 			return json(
-				{ error: 'Name already exists, please choose another name', success: false },
+				{ error: 'Username already exists, please choose another username', success: false },
 				{ status: 403 }
 			);
 		}
@@ -81,7 +81,7 @@ export const POST: RequestHandler = async ({
 
 		if (userIdByPublicKey) {
 			return json(
-				{ error: 'Public key already exists, please reset your keypairs', success: false },
+				{ error: 'Public key already exists, please reset your key pairs', success: false },
 				{ status: 403 }
 			);
 		}

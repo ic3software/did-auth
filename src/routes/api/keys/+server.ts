@@ -68,7 +68,7 @@ export const POST: RequestHandler = async ({
 
 		if (existingPublicKey) {
 			return json(
-				{ error: 'You have already linked this key to another account.', success: false },
+				{ error: 'You have already linked this public key to another account', success: false },
 				{ status: 409 }
 			);
 		}
@@ -98,7 +98,7 @@ export const DELETE: RequestHandler = async ({
 		const { publicKey } = body as { publicKey: string };
 
 		if (!publicKey) {
-			return json({ error: 'Missing publicKey', success: false }, { status: 400 });
+			return json({ error: 'Missing public key', success: false }, { status: 400 });
 		}
 
 		if (xPublicKey === publicKey) {

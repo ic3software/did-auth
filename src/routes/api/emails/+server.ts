@@ -51,10 +51,7 @@ export const POST: RequestHandler = async ({
 
 		const existingEmail = await checkEmailExists(db, email);
 		if (existingEmail) {
-			return json(
-				{ error: 'Email already exists, cannot bind again', success: false },
-				{ status: 409 }
-			);
+			return json({ error: 'Email already exists', success: false }, { status: 409 });
 		}
 
 		await insertEmail(db, userId!, email);

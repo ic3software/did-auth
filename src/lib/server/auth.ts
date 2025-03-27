@@ -30,15 +30,19 @@ export async function authenticateRequest(
 	const xTimerSignature = request.headers.get('X-Timer-Signature');
 
 	if (!xPublicKey) {
-		return { success: false, error: 'Missing X-Public-Key', status: 400 };
+		return { success: false, error: 'Missing public key', status: 400 };
 	}
 
 	if (!xSignature) {
-		return { success: false, error: 'User not found', status: 404 };
+		return { success: false, error: 'Missing signature', status: 400 };
 	}
 
-	if (!xTimer || !xTimerSignature) {
-		return { success: false, error: 'Missing timer or timer signature', status: 400 };
+	if (!xTimer) {
+		return { success: false, error: 'Missing timer', status: 400 };
+	}
+
+	if (!xTimerSignature) {
+		return { success: false, error: 'Missing timer signature', status: 400 };
 	}
 
 	if (!isValidBase58btc(xSignature) || !isValidBase58btc(xTimerSignature)) {
