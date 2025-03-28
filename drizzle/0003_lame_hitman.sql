@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `email_reset` integer DEFAULT false NOT NULL;

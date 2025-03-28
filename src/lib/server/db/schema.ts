@@ -5,6 +5,7 @@ export const users = sqliteTable('users', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	name: text('name').unique().notNull(),
 	normalizedName: text('normalized_name').unique().notNull(),
+	emailReset: integer('email_reset', { mode: 'boolean' }).notNull().default(false),
 	createdAt: integer('created_at')
 		.notNull()
 		.default(sql`CURRENT_TIMESTAMP`),

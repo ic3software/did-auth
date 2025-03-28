@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { fetchEmails, fetchKeys, fetchTokens, fetchUsers } from '$lib/api';
+	import { fetchEmails, fetchKeys, fetchTokens, fetchUserEmailReset, fetchUsers } from '$lib/api';
 	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
@@ -30,6 +30,7 @@
 	let tokenErrorMessage = $state('');
 	let publicKeyInfoMessage = $state('');
 	let publicKeyErrorMessage = $state('');
+	let emailResetEnabled = $state(false);
 
 	async function addEmail() {
 		if (!email) return;
@@ -140,12 +141,31 @@
 		}
 	}
 
+	async function toggleEmailReset() {
+		try {
+			const { success, error } = await fetchUserEmailReset('PATCH', {
+				emailReset: !emailResetEnabled
+			});
+			if (success) {
+				emailResetEnabled = !emailResetEnabled;
+			} else {
+				errorMessage = error || 'Failed to update email reset setting.';
+				console.error(errorMessage);
+			}
+		} catch (error) {
+			errorMessage =
+				'An unexpected error occurred while updating email reset setting. Error: ' + error;
+			console.error('Error updating email reset setting:', error);
+		}
+	}
+
 	onMount(async () => {
 		try {
 			const userResult = await fetchUsers('GET');
 
 			if (userResult.success) {
 				userName = userResult.data?.name || '';
+				emailResetEnabled = userResult.data?.emailReset || false;
 
 				const [emailsResult, keysResult, tokensResult] = await Promise.all([
 					fetchEmails('GET'),
@@ -428,6 +448,23 @@
 						{/each}
 					</ul>
 				{/if}
+			</div>
+			<div class="mt-4 flex items-center">
+				<label for="email-reset-toggle" class="mr-2 text-gray-900 dark:text-white"
+					>Enable Email Reset:</label
+				>
+				<label class="relative inline-flex cursor-pointer items-center">
+					<input
+						id="email-reset-toggle"
+						type="checkbox"
+						checked={emailResetEnabled}
+						onchange={toggleEmailReset}
+						class="peer sr-only"
+					/>
+					<div
+						class="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700"
+					></div>
+				</label>
 			</div>
 		{/if}
 	</div>
