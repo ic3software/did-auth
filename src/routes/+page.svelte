@@ -53,10 +53,11 @@
 	async function removeEmail(index: number) {
 		try {
 			const emailToRemove = emailList[index];
-			const { success, error } = await fetchEmails('DELETE', { email: emailToRemove });
+			const { success, error, data } = await fetchEmails('DELETE', { email: emailToRemove });
 			if (success) {
 				emailList = emailList.filter((_, i) => i !== index);
 				errorMessage = '';
+				emailResetEnabled = data?.emailReset ?? false;
 			} else {
 				errorMessage = error || 'Failed to remove email.';
 				console.error(errorMessage);
@@ -141,13 +142,15 @@
 		}
 	}
 
-	async function toggleEmailReset() {
+	async function toggleEmailReset(checked: boolean) {
+		errorMessage = '';
+
 		try {
 			const { success, error } = await fetchUserEmailReset('PATCH', {
-				emailReset: !emailResetEnabled
+				emailReset: checked
 			});
 			if (success) {
-				emailResetEnabled = !emailResetEnabled;
+				emailResetEnabled = checked;
 			} else {
 				errorMessage = error || 'Failed to update email reset setting.';
 				console.error(errorMessage);
@@ -458,7 +461,10 @@
 						id="email-reset-toggle"
 						type="checkbox"
 						checked={emailResetEnabled}
-						onchange={toggleEmailReset}
+						onclick={(e) => {
+							e.preventDefault();
+							toggleEmailReset((e.target as HTMLInputElement).checked);
+						}}
 						class="peer sr-only"
 					/>
 					<div

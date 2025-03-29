@@ -1,4 +1,5 @@
 import { authenticateRequest } from '$lib/server/auth';
+import { doesUserIdHaveEmail } from '$lib/server/models/email';
 import { updateUserEmailReset } from '$lib/server/models/user';
 import type { D1Database } from '@cloudflare/workers-types';
 import { json } from '@sveltejs/kit';
@@ -23,6 +24,11 @@ export const PATCH: RequestHandler = async ({
 
 		if (typeof emailReset !== 'boolean') {
 			return json({ error: 'Invalid emailReset value', success: false }, { status: 400 });
+		}
+
+		const hasEmail = await doesUserIdHaveEmail(db, userId!);
+		if (!hasEmail) {
+			return json({ error: 'User has no email', success: false }, { status: 400 });
 		}
 
 		await updateUserEmailReset(db, userId!, emailReset);

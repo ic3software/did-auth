@@ -37,6 +37,5 @@ export async function updateUserEmailReset(
 	userId: number,
 	emailReset: boolean
 ) {
-	console.log('Updating user email reset:', userId, emailReset);
 	return await db.update(users).set({ emailReset }).where(eq(users.id, userId)).run();
 }

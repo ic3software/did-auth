@@ -11,6 +11,15 @@ export async function getEmailsByUserId(db: DrizzleD1Database, userId: number) {
 		.all();
 }
 
+export async function doesUserIdHaveEmail(db: DrizzleD1Database, userId: number): Promise<boolean> {
+	const result = await db
+		.select({ id: emails.id })
+		.from(emails)
+		.where(eq(emails.userId, userId))
+		.get();
+	return result !== undefined;
+}
+
 export async function getEmailByUserIdAndEmail(
 	db: DrizzleD1Database,
 	userId: number,
