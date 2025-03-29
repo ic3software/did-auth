@@ -1,20 +1,15 @@
 <script lang="ts">
 	import { fetchEmailReset } from '$lib/api';
+	import { validateEmail } from '$lib/validateEmail';
 
-	let email = '';
-	let validEmail = false;
-	let successMessage = '';
-	let errorMessage = '';
-	let isLoading = false;
+	let email = $state('');
+	let validEmail = $derived(validateEmail(email));
+	let successMessage = $state('');
+	let errorMessage = $state('');
+	let isLoading = $state(false);
 
-	const validateEmail = (email: string) => {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(email);
-	};
-
-	$: validEmail = validateEmail(email);
-
-	const handleSubmit = async () => {
+	const handleSubmit = async (e: SubmitEvent) => {
+		e.preventDefault();
 		if (isLoading) return;
 
 		successMessage = '';

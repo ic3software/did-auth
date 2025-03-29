@@ -38,13 +38,16 @@ export const POST: RequestHandler = async ({
 
 		const userId = await getUserIdByEmail(db, email.toLowerCase());
 		if (!userId) {
-			return json({ error: 'Email not found', success: false }, { status: 400 });
+			return json(
+				{ error: 'Email not found or email reset not enabled', success: false },
+				{ status: 400 }
+			);
 		}
 
 		const user = await getByUserId(db, userId);
 		if (!user || !user.emailReset) {
 			return json(
-				{ error: 'Email reset not enabled for this user', success: false },
+				{ error: 'Email not found or email reset not enabled', success: false },
 				{ status: 400 }
 			);
 		}

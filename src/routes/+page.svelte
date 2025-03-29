@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { fetchEmails, fetchKeys, fetchTokens, fetchUserEmailReset, fetchUsers } from '$lib/api';
+	import { validateEmail } from '$lib/validateEmail';
 	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
@@ -19,6 +20,7 @@
 	let typedPage = page as unknown as CustomPageState;
 
 	let email = $state('');
+	let validEmail = $derived(validateEmail(email));
 	let emailList = $state<string[]>([]);
 	let currentPublicKey = $state<string>('');
 	let publicKeyList = $state<string[]>([]);
@@ -34,6 +36,10 @@
 
 	async function addEmail() {
 		if (!email) return;
+		if (!validateEmail(email)) {
+			errorMessage = 'Invalid email address';
+			return;
+		}
 		try {
 			const { success, error } = await fetchEmails('POST', { email });
 			if (success) {
@@ -432,10 +438,14 @@
 						<button
 							class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-800"
 							onclick={addEmail}
+							disabled={!validEmail}
 						>
 							Add Email
 						</button>
 					</div>
+					{#if email && !validEmail}
+						<p class="text-red-500 dark:text-red-400">Invalid email format</p>
+					{/if}
 				{:else}
 					<ul>
 						{#each emailList as email, index}
