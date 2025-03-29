@@ -36,7 +36,7 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Missing email', success: false }, { status: 400 });
 		}
 
-		const userId = await getUserIdByEmail(db, email);
+		const userId = await getUserIdByEmail(db, email.toLowerCase());
 		if (!userId) {
 			return json({ error: 'Email not found', success: false }, { status: 400 });
 		}

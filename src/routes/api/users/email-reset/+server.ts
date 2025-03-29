@@ -28,7 +28,10 @@ export const PATCH: RequestHandler = async ({
 
 		const hasEmail = await doesUserIdHaveEmail(db, userId!);
 		if (!hasEmail) {
-			return json({ error: 'User has no email', success: false }, { status: 400 });
+			return json(
+				{ error: 'You need to add an email to your account', success: false },
+				{ status: 400 }
+			);
 		}
 
 		await updateUserEmailReset(db, userId!, emailReset);

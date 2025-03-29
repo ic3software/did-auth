@@ -56,7 +56,7 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Email already exists', success: false }, { status: 409 });
 		}
 
-		await insertEmail(db, userId!, email);
+		await insertEmail(db, userId!, email.toLowerCase());
 
 		return json({ data: { email }, success: true }, { status: 201 });
 	} catch (error) {
