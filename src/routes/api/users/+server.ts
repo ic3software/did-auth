@@ -1,11 +1,6 @@
 import { authenticateRequest } from '$lib/server/auth';
 import { getUserIdByPublicKey, insertPublicKey } from '$lib/server/models/publicKey';
-import {
-	doesNameExist,
-	getNameByUserId,
-	getUserIdByName,
-	insertUser
-} from '$lib/server/models/user';
+import { doesNameExist, getByUserId, getUserIdByName, insertUser } from '$lib/server/models/user';
 import type { D1Database } from '@cloudflare/workers-types';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from '@sveltejs/kit';
@@ -22,9 +17,9 @@ export const GET: RequestHandler = async ({
 		}
 
 		const { userId, db } = authResult.data;
-		const userName = await getNameByUserId(db, userId!);
+		const userModel = await getByUserId(db, userId!);
 
-		return json({ data: userName, success: true }, { status: 200 });
+		return json({ data: userModel, success: true }, { status: 200 });
 	} catch (error) {
 		console.error('Error processing GET request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });

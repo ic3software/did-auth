@@ -11,6 +11,15 @@ export async function getEmailsByUserId(db: DrizzleD1Database, userId: number) {
 		.all();
 }
 
+export async function doesUserIdHaveEmail(db: DrizzleD1Database, userId: number): Promise<boolean> {
+	const result = await db
+		.select({ id: emails.id })
+		.from(emails)
+		.where(eq(emails.userId, userId))
+		.get();
+	return result !== undefined;
+}
+
 export async function getEmailByUserIdAndEmail(
 	db: DrizzleD1Database,
 	userId: number,
@@ -31,6 +40,19 @@ export async function checkEmailExists(db: DrizzleD1Database, email: string) {
 		.get();
 
 	return !!result;
+}
+
+export async function getUserIdByEmail(
+	db: DrizzleD1Database,
+	email: string
+): Promise<number | null> {
+	const result = await db
+		.select({ userId: emails.userId })
+		.from(emails)
+		.where(eq(emails.email, email))
+		.get();
+
+	return result ? result.userId : null;
 }
 
 export async function insertEmail(db: DrizzleD1Database, userId: number, email: string) {

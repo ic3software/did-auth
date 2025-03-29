@@ -2,10 +2,12 @@ import { authenticateRequest } from '$lib/server/auth';
 import {
 	checkEmailExists,
 	deleteEmail,
+	doesUserIdHaveEmail,
 	getEmailByUserIdAndEmail,
 	getEmailsByUserId,
 	insertEmail
 } from '$lib/server/models/email';
+import { getByUserId, updateUserEmailReset } from '$lib/server/models/user';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -54,7 +56,7 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Email already exists', success: false }, { status: 409 });
 		}
 
-		await insertEmail(db, userId!, email);
+		await insertEmail(db, userId!, email.toLowerCase());
 
 		return json({ data: { email }, success: true }, { status: 201 });
 	} catch (error) {
@@ -89,7 +91,16 @@ export const DELETE: RequestHandler = async ({
 
 		await deleteEmail(db, existingEmail.id);
 
-		return json({ data: { email }, success: true }, { status: 200 });
+		// In future, we'll support multiple emails, so we need to check if the user has any emails left
+		const hasEmail = await doesUserIdHaveEmail(db, userId!);
+		const user = await getByUserId(db, userId!);
+		let emailReset = user?.emailReset ?? false;
+		if (!hasEmail && emailReset) {
+			emailReset = false;
+			await updateUserEmailReset(db, userId!, emailReset);
+		}
+
+		return json({ data: { email, emailReset }, success: true }, { status: 200 });
 	} catch (error) {
 		console.error('Error processing DELETE request:', error);
 		return json({ error: 'Internal Server Error', success: false }, { status: 500 });

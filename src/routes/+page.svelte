@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { fetchEmails, fetchKeys, fetchTokens, fetchUsers } from '$lib/api';
+	import { fetchEmails, fetchKeys, fetchTokens, fetchUserEmailReset, fetchUsers } from '$lib/api';
+	import { validateEmail } from '$lib/validateEmail';
 	import type { Page } from '@sveltejs/kit';
 	import { onMount } from 'svelte';
 
@@ -19,6 +20,7 @@
 	let typedPage = page as unknown as CustomPageState;
 
 	let email = $state('');
+	let validEmail = $derived(validateEmail(email));
 	let emailList = $state<string[]>([]);
 	let currentPublicKey = $state<string>('');
 	let publicKeyList = $state<string[]>([]);
@@ -30,9 +32,14 @@
 	let tokenErrorMessage = $state('');
 	let publicKeyInfoMessage = $state('');
 	let publicKeyErrorMessage = $state('');
+	let emailResetEnabled = $state(false);
 
 	async function addEmail() {
 		if (!email) return;
+		if (!validateEmail(email)) {
+			errorMessage = 'Invalid email address';
+			return;
+		}
 		try {
 			const { success, error } = await fetchEmails('POST', { email });
 			if (success) {
@@ -52,10 +59,11 @@
 	async function removeEmail(index: number) {
 		try {
 			const emailToRemove = emailList[index];
-			const { success, error } = await fetchEmails('DELETE', { email: emailToRemove });
+			const { success, error, data } = await fetchEmails('DELETE', { email: emailToRemove });
 			if (success) {
 				emailList = emailList.filter((_, i) => i !== index);
 				errorMessage = '';
+				emailResetEnabled = data?.emailReset ?? false;
 			} else {
 				errorMessage = error || 'Failed to remove email.';
 				console.error(errorMessage);
@@ -140,12 +148,33 @@
 		}
 	}
 
+	async function toggleEmailReset(checked: boolean) {
+		errorMessage = '';
+
+		try {
+			const { success, error } = await fetchUserEmailReset('PATCH', {
+				emailReset: checked
+			});
+			if (success) {
+				emailResetEnabled = checked;
+			} else {
+				errorMessage = error || 'Failed to update email reset setting.';
+				console.error(errorMessage);
+			}
+		} catch (error) {
+			errorMessage =
+				'An unexpected error occurred while updating email reset setting. Error: ' + error;
+			console.error('Error updating email reset setting:', error);
+		}
+	}
+
 	onMount(async () => {
 		try {
 			const userResult = await fetchUsers('GET');
 
 			if (userResult.success) {
 				userName = userResult.data?.name || '';
+				emailResetEnabled = userResult.data?.emailReset || false;
 
 				const [emailsResult, keysResult, tokensResult] = await Promise.all([
 					fetchEmails('GET'),
@@ -214,8 +243,10 @@
 		{#if errorMessage}
 			<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
 				{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
-					Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how
-					to enable it:
+					<div class="mb-4">
+						Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how
+						to enable it:
+					</div>
 					<ol class="list-decimal pl-4">
 						<li>
 							Open a new browser window and type <code class="font-mono">chrome://flags</code> in the
@@ -230,6 +261,7 @@
 						<li>After enabling the flag, you will be prompted to restart the browser.</li>
 						<li>Click "Relaunch" to restart and try loading this page again.</li>
 					</ol>
+					<p class="mt-4">You can also use Firefox (Windows, Linux, Apple) or Safari (Apple).</p>
 				{:else}
 					{errorMessage}
 				{/if}
@@ -409,10 +441,14 @@
 						<button
 							class="w-full rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700 sm:w-auto dark:bg-blue-600 dark:hover:bg-blue-800"
 							onclick={addEmail}
+							disabled={!validEmail}
 						>
 							Add Email
 						</button>
 					</div>
+					{#if email && !validEmail}
+						<p class="text-red-500 dark:text-red-400">Invalid email format</p>
+					{/if}
 				{:else}
 					<ul>
 						{#each emailList as email, index}
@@ -428,6 +464,26 @@
 						{/each}
 					</ul>
 				{/if}
+			</div>
+			<div class="mt-4 flex items-center">
+				<label for="email-reset-toggle" class="mr-2 text-gray-900 dark:text-white"
+					>Enable Email Reset:</label
+				>
+				<label class="relative inline-flex cursor-pointer items-center">
+					<input
+						id="email-reset-toggle"
+						type="checkbox"
+						checked={emailResetEnabled}
+						onclick={(e) => {
+							e.preventDefault();
+							toggleEmailReset((e.target as HTMLInputElement).checked);
+						}}
+						class="peer sr-only"
+					/>
+					<div
+						class="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700"
+					></div>
+				</label>
 			</div>
 		{/if}
 	</div>

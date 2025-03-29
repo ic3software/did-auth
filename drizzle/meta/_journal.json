@@ -22,6 +22,13 @@
       "when": 1742848325091,
       "tag": "0002_curved_rachel_grey",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1743141000468,
+      "tag": "0003_lame_hitman",
+      "breakpoints": true
     }
   ]
 }

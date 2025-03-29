@@ -59,3 +59,11 @@ export async function fetchKeys(method: string, payload: ApiPayload = {}) {
 export async function fetchTokens(method: string, payload: ApiPayload = {}) {
 	return await fetchApi(method, '/api/tokens', payload);
 }
+
+export async function fetchUserEmailReset(method: string, payload: ApiPayload = {}) {
+	return await fetchApi(method, '/api/users/email-reset', payload);
+}
+
+export async function fetchEmailReset(method: string, payload: ApiPayload = {}) {
+	return await fetchApi(method, '/api/emails/reset', payload);
+}
