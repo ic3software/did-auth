@@ -243,8 +243,10 @@
 		{#if errorMessage}
 			<div class="my-4 rounded-md bg-red-200 p-4 text-red-800 dark:bg-red-700 dark:text-red-200">
 				{#if errorMessage && errorMessage.includes('Algorithm: Unrecognized name')}
-					Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how
-					to enable it:
+					<div class="mb-4">
+						Chrome and Chromium browsers do not support the Ed25519 algorithm by default. Here's how
+						to enable it:
+					</div>
 					<ol class="list-decimal pl-4">
 						<li>
 							Open a new browser window and type <code class="font-mono">chrome://flags</code> in the
@@ -259,6 +261,7 @@
 						<li>After enabling the flag, you will be prompted to restart the browser.</li>
 						<li>Click "Relaunch" to restart and try loading this page again.</li>
 					</ol>
+					<p class="mt-4">You can also use Firefox (Windows, Linux, Apple) or Safari (Apple).</p>
 				{:else}
 					{errorMessage}
 				{/if}
