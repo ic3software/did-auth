@@ -42,6 +42,19 @@ export async function checkEmailExists(db: DrizzleD1Database, email: string) {
 	return !!result;
 }
 
+export async function getUserIdByEmail(
+	db: DrizzleD1Database,
+	email: string
+): Promise<number | null> {
+	const result = await db
+		.select({ userId: emails.userId })
+		.from(emails)
+		.where(eq(emails.email, email))
+		.get();
+
+	return result ? result.userId : null;
+}
+
 export async function insertEmail(db: DrizzleD1Database, userId: number, email: string) {
 	return await db.insert(emails).values({ userId, email }).run();
 }
