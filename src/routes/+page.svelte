@@ -111,7 +111,7 @@
 			const { success, error } = await fetchTokens('DELETE', { token });
 			if (success) {
 				tokens = tokens.filter((t) => t.token !== token);
-				tokenInfoMessage = 'The access token has been deleted.';
+				tokenInfoMessage = 'The login token has been deleted.';
 			} else {
 				tokenErrorMessage = error || 'Failed to delete token.';
 				console.error(tokenErrorMessage);
@@ -123,7 +123,7 @@
 	}
 
 	function copyLinkToClipboard(token: string) {
-		navigator.clipboard.writeText(`${window.location.origin}/access?token=${token}`).then(() => {
+		navigator.clipboard.writeText(`${window.location.origin}/login?token=${token}`).then(() => {
 			alert('Link copied!');
 		});
 	}
@@ -347,11 +347,9 @@
 				<div class="mt-2 text-red-500">{publicKeyErrorMessage}</div>
 			{/if}
 			<h2 class="mt-8 text-xl font-semibold text-gray-900 dark:text-white">
-				{tokens.length > 1 ? 'Access Tokens' : 'Access Token'}
+				{tokens.length > 1 ? 'Login Tokens' : 'Login Token'}
 			</h2>
-			<div class="my-4">
-				Generate an access token to sign in to your account from another device.
-			</div>
+			<div class="my-4">Generate a login token to sign in to your account from another device.</div>
 			<div class="mt-2 rounded-md bg-gray-200 p-4 dark:bg-gray-700">
 				{#if tokens.length === 0}
 					<p class="text-left text-gray-900 dark:text-white">No token available.</p>
@@ -408,7 +406,7 @@
 						onclick={generateLink}
 						disabled={isGeneratingLink}
 					>
-						{isGeneratingLink ? 'Generating...' : 'Generate Access Token'}
+						{isGeneratingLink ? 'Generating...' : 'Generate Login Token'}
 					</button>
 				{/if}
 				{#if tokenInfoMessage}

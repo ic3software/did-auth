@@ -53,7 +53,7 @@ export const POST: RequestHandler = async ({
 		}
 
 		const token = generateLoginToken();
-		const resetLink = new URL(`/access?token=${token}`, request.url).toString();
+		const resetLink = new URL(`/login?token=${token}`, request.url).toString();
 
 		const { error } = await resend.emails.send({
 			from: 'DONOTREPLY <onboarding@ic3.dev>',
