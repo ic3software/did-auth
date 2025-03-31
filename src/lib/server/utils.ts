@@ -1,5 +1,5 @@
 import { createId } from '@paralleldrive/cuid2';
 
-export function generateRegistrationToken(): string {
+export function generateLoginToken(): string {
 	return createId();
 }
