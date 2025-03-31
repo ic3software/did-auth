@@ -1,14 +1,11 @@
 import { authenticateRequest } from '$lib/server/auth';
+import { deleteLoginToken, isTokenValidAndGetUserId } from '$lib/server/models/login_tokens';
 import {
 	deletePublicKey,
 	getPublicKeysByUserId,
 	getUserIdByPublicKey,
 	insertPublicKey
 } from '$lib/server/models/publicKey';
-import {
-	deleteRegistrationToken,
-	isTokenValidAndGetUserId
-} from '$lib/server/models/registrationToken';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -74,7 +71,7 @@ export const POST: RequestHandler = async ({
 		}
 
 		await insertPublicKey(db, userId, xPublicKey);
-		await deleteRegistrationToken(db, userId, token);
+		await deleteLoginToken(db, userId, token);
 
 		return json({ data: { publicKey: xPublicKey }, success: true }, { status: 201 });
 	} catch (error) {

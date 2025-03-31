@@ -1,10 +1,10 @@
 import { authenticateRequest } from '$lib/server/auth';
 import {
-	deleteRegistrationToken,
+	deleteLoginToken,
 	getTokensByUserId,
-	insertRegistrationToken
-} from '$lib/server/models/registrationToken';
-import { generateRegistrationToken } from '$lib/server/utils';
+	insertLoginToken
+} from '$lib/server/models/login_tokens';
+import { generateLoginToken } from '$lib/server/utils';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -43,9 +43,9 @@ export const POST: RequestHandler = async ({
 
 		const { userId, db } = authResult.data;
 
-		const token = generateRegistrationToken();
+		const token = generateLoginToken();
 
-		const { expiresAt } = await insertRegistrationToken(db, userId!, token);
+		const { expiresAt } = await insertLoginToken(db, userId!, token);
 
 		return json({ data: { token, expires_at: expiresAt }, success: true }, { status: 201 });
 	} catch (error) {
@@ -72,7 +72,7 @@ export const DELETE: RequestHandler = async ({
 			return json({ error: 'Missing token', success: false }, { status: 400 });
 		}
 
-		const deleteResult = await deleteRegistrationToken(db, userId!, token);
+		const deleteResult = await deleteLoginToken(db, userId!, token);
 
 		if (!deleteResult) {
 			return json({ error: 'Token has already been deleted', success: false }, { status: 404 });

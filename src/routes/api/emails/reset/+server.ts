@@ -1,9 +1,9 @@
 import { PRIVATE_RESEND_KEY } from '$env/static/private';
 import { authenticateRequest } from '$lib/server/auth';
 import { getUserIdByEmail } from '$lib/server/models/email';
-import { insertRegistrationToken } from '$lib/server/models/registrationToken';
+import { insertLoginToken } from '$lib/server/models/login_tokens';
 import { getByUserId } from '$lib/server/models/user';
-import { generateRegistrationToken } from '$lib/server/utils';
+import { generateLoginToken } from '$lib/server/utils';
 import type { D1Database } from '@cloudflare/workers-types';
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
@@ -52,7 +52,7 @@ export const POST: RequestHandler = async ({
 			);
 		}
 
-		const token = generateRegistrationToken();
+		const token = generateLoginToken();
 		const resetLink = new URL(`/access?token=${token}`, request.url).toString();
 
 		const { error } = await resend.emails.send({
@@ -66,7 +66,7 @@ export const POST: RequestHandler = async ({
 			return json({ error: 'Failed to send email', success: false }, { status: 500 });
 		}
 
-		await insertRegistrationToken(db, userId, token);
+		await insertLoginToken(db, userId, token);
 
 		return json({ data: { email }, success: true }, { status: 200 });
 	} catch (error) {

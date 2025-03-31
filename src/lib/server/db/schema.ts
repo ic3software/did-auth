@@ -36,7 +36,7 @@ export const emails = sqliteTable('emails', {
 		.default(sql`CURRENT_TIMESTAMP`)
 });
 
-export const registrationTokens = sqliteTable('registration_tokens', {
+export const loginTokens = sqliteTable('login_tokens', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	userId: integer('user_id')
 		.notNull()
@@ -51,7 +51,7 @@ export const registrationTokens = sqliteTable('registration_tokens', {
 export const usersRelations = relations(users, ({ many }) => ({
 	publicKeys: many(publicKeys),
 	emails: many(emails),
-	registrationTokens: many(registrationTokens)
+	loginTokens: many(loginTokens)
 }));
 
 export const publicKeysRelations = relations(publicKeys, ({ one }) => ({
@@ -68,9 +68,9 @@ export const emailsRelations = relations(emails, ({ one }) => ({
 	})
 }));
 
-export const registrationTokensRelations = relations(registrationTokens, ({ one }) => ({
+export const loginTokensRelations = relations(loginTokens, ({ one }) => ({
 	user: one(users, {
-		fields: [registrationTokens.userId],
+		fields: [loginTokens.userId],
 		references: [users.id]
 	})
 }));

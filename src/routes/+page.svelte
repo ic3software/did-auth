@@ -11,7 +11,7 @@
 		};
 	}
 
-	interface RegistrationToken {
+	interface LoginToken {
 		token: string;
 		expiresAt: Date;
 		expiresIn: number;
@@ -26,7 +26,7 @@
 	let publicKeyList = $state<string[]>([]);
 	let errorMessage = $state('');
 	let userName = $state('');
-	let tokens = $state<RegistrationToken[]>([]);
+	let tokens = $state<LoginToken[]>([]);
 	let isGeneratingLink = $state(false);
 	let tokenInfoMessage = $state('');
 	let tokenErrorMessage = $state('');
