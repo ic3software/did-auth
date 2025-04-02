@@ -13,9 +13,3 @@ binding = "DB"
 database_name = "did-auth"
 database_id = "aa853f2b-3636-4aa4-844e-e6a084f0ac5d"
 migrations_dir = "drizzle"
-
-[[unsafe.bindings]]
-name = "RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1001"
-simple = { limit = 2, period = 60 }
