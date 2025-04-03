@@ -229,10 +229,10 @@
 
 <div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
 	<div class="my-4 w-full max-w-4xl rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
-		<h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-			<code class="font-mono">did:key</code> Authentication
-		</h1>
-		<div class="font-serif text-lg"><em>(Look Ma, No Passwords!)</em></div>
+		<h1 class="text-2xl font-bold text-gray-900 dark:text-white">Simple and Secure Logins</h1>
+		<div class="font-serif text-lg">
+			<code class="font-mono">did:key</code> <em>Authentication Demo</em>
+		</div>
 		{#if typedPage?.state?.message}
 			<div
 				class="my-4 rounded-md bg-green-200 p-4 text-green-800 dark:bg-green-700 dark:text-green-200"
@@ -261,7 +261,11 @@
 						<li>After enabling the flag, you will be prompted to restart the browser.</li>
 						<li>Click "Relaunch" to restart and try loading this page again.</li>
 					</ol>
-					<p class="mt-4">You can also use Firefox (Windows, Linux, Apple) or Safari (Apple).</p>
+					<p class="mt-4">
+						<strong
+							>Or you can simply just use Firefox (Windows, Linux, Apple) or Safari (Apple) instead.</strong
+						>
+					</p>
 				{:else}
 					{errorMessage}
 				{/if}
@@ -273,7 +277,7 @@
 					When you loaded this website, a public/private key pair was generated and stored safely in
 					your browser.
 				</div>
-				<div class="my-4">Click the button below to create an account.</div>
+				<div class="my-4">Click the button below to create a demo account.</div>
 				<div class="my-4">You will then be able to identify yourself here using this key pair.</div>
 				<div class="mt-8 mb-2">
 					<a
@@ -482,6 +486,12 @@
 						class="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 after:absolute after:top-0.5 after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white dark:border-gray-600 dark:bg-gray-700"
 					></div>
 				</label>
+			</div>
+			<div class="my-4">
+				Use this link to test resetting your email: <a
+					class="text-blue-500 hover:text-blue-700 dark:text-blue-600 dark:hover:text-blue-800"
+					href="{window.location.origin}/email">{window.location.origin}/email</a
+				>
 			</div>
 		{/if}
 	</div>
