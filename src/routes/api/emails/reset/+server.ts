@@ -58,8 +58,8 @@ export const POST: RequestHandler = async ({
 		const { error } = await resend.emails.send({
 			from: 'DONOTREPLY <onboarding@ic3.dev>',
 			to: [email],
-			subject: 'Password Reset',
-			html: `<strong>Click the link to reset your password: <a href="${resetLink}">${resetLink}</a></strong>`
+			subject: 'Account Access Reset',
+			html: `<strong>Click the link to reset your account access: <a href="${resetLink}">${resetLink}</a></strong>`
 		});
 
 		if (error) {
