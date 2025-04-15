@@ -22,7 +22,7 @@
 	"dependencies": {
 		"@paralleldrive/cuid2": "^2.2.2",
 		"@sveltejs/adapter-cloudflare": "^5.1.0",
-		"@sveltejs/kit": "^2.20.2",
+		"@sveltejs/kit": "^2.20.6",
 		"drizzle-orm": "^0.40.1",
 		"resend": "^4.2.0",
 		"svelte": "^5.25.3",
@@ -34,7 +34,7 @@
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.23.0",
 		"@sveltejs/adapter-cloudflare": "^5.0.3",
-		"@sveltejs/kit": "^2.16.0",
+		"@sveltejs/kit": "^2.20.6",
 		"@sveltejs/vite-plugin-svelte": "^5.0.0",
 		"@tailwindcss/vite": "^4.0.17",
 		"@testing-library/jest-dom": "^6.6.3",
