@@ -20,53 +20,57 @@
 		"db:migrate:prod": "pnpm exec wrangler d1 migrations apply did-auth --remote --env production"
 	},
 	"dependencies": {
-		"@paralleldrive/cuid2": "^2.2.2",
-		"@sveltejs/adapter-cloudflare": "^7.2.3",
-		"@sveltejs/kit": "^2.37.0",
-		"drizzle-orm": "^0.44.5",
+		"@paralleldrive/cuid2": "^2.3.1",
+		"@sveltejs/adapter-cloudflare": "^7.2.4",
+		"@sveltejs/kit": "^2.49.2",
+		"drizzle-orm": "^0.44.7",
 		"resend": "^4.8.0",
-		"svelte": "^5.38.6",
-		"tailwindcss": "^4.1.12",
+		"svelte": "^5.46.1",
+		"tailwindcss": "^4.1.18",
 		"uint8arrays": "^5.1.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20250902.0",
-		"@eslint/compat": "^1.3.2",
-		"@eslint/js": "^9.34.0",
+		"@cloudflare/workers-types": "^4.20260103.0",
+		"@eslint/compat": "^1.4.1",
+		"@eslint/js": "^9.39.2",
 		"@sveltejs/adapter-cloudflare": "^7.0.4",
 		"@sveltejs/kit": "^2.21.5",
 		"@sveltejs/vite-plugin-svelte": "^5.1.1",
-		"@tailwindcss/vite": "^4.1.12",
-		"@testing-library/jest-dom": "^6.8.0",
-		"@testing-library/svelte": "^5.2.8",
+		"@tailwindcss/vite": "^4.1.18",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/svelte": "^5.3.1",
 		"@trivago/prettier-plugin-sort-imports": "^5.2.2",
-		"@types/node": "^24.3.0",
-		"drizzle-kit": "^0.31.4",
-		"eslint": "^9.34.0",
+		"@types/node": "^24.10.4",
+		"drizzle-kit": "^0.31.8",
+		"eslint": "^9.39.2",
 		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-svelte": "^3.11.0",
-		"globals": "^16.3.0",
+		"eslint-plugin-svelte": "^3.13.1",
+		"globals": "^16.5.0",
 		"husky": "^9.1.7",
 		"jsdom": "^26.1.0",
-		"lint-staged": "^16.1.6",
-		"prettier": "^3.6.2",
-		"prettier-plugin-svelte": "^3.4.0",
+		"lint-staged": "^16.2.7",
+		"prettier": "^3.7.4",
+		"prettier-plugin-svelte": "^3.4.1",
 		"prettier-plugin-tailwindcss": "^0.6.14",
 		"svelte": "^5.0.0",
-		"svelte-check": "^4.3.1",
+		"svelte-check": "^4.3.5",
 		"tailwindcss": "^4.0.0",
-		"typescript": "^5.9.2",
-		"typescript-eslint": "^8.42.0",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.51.0",
 		"vite": "^6.4.1",
 		"vitest": "^3.2.4",
-		"wrangler": "^4.33.2"
+		"wrangler": "^4.54.0"
 	},
 	"engines": {
 		"node": ">=20.19.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"esbuild"
+			"esbuild",
+			"workerd"
+		],
+		"ignoredBuiltDependencies": [
+			"sharp"
 		]
 	},
 	"lint-staged": {
